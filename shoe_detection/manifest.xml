@@ -15,7 +15,7 @@
   <depend package="std_msgs"/>
   <depend package="geometry_msgs"/>
   <depend package="moveit_msgs"/>
-
+  <depend package="pcl"/>
 </package>
 
 
