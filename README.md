@@ -3,4 +3,5 @@
 ```
 roslaunch openni_launch openni.launch device_id:=#2
 rosrun shoe_detection shoe_position.py 
+roslaunch yumi_moveit_config yumi.launch 
 ```
