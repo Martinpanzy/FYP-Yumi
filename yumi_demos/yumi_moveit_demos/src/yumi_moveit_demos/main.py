@@ -10,8 +10,9 @@ import moveit_msgs.msg
 import geometry_msgs.msg
 from std_srvs.srv import Empty
 
-
-
+LEFT = 2        #:ID of the left arm
+RIGHT = 1       #:ID of the right arm
+BOTH = 3        #:ID of both_arms
 
 def close_grippers(arm):
     """Closes the grippers.
@@ -79,18 +80,25 @@ def run():
 
     # Reset YuMi joints to "home" position
     yumi.reset_pose()
-
+    ##yumi.reset_arm('RIGHT')
 
     # Drive YuMi end effectors to a desired position (pose_ee), and perform a grasping task with a given effort (grip_effort)
     # Gripper effort: opening if negative, closing if positive, static if zero
     pose_ee = [0.3, 0.15, 0.2, 0.0, 3.14, 3.14]
+    ##pose_ee = [0.3, 0.15, 0.2, 0.0, 0.0, 3.14]
     grip_effort = -10.0
-    move_and_grasp(yumi.LEFT, pose_ee, grip_effort)
+    #move_and_grasp(yumi.LEFT, pose_ee, grip_effort)
 
-    pose_ee = [0.3, -0.15, 0.2, 0.0, 3.14, 3.14]
+    pose_ee = [0.3, -0.15, 0.3, 0.0, 3.14, 3.14]
+    #pose_ee = [0.5, -0.15, 0.1, 0.0, 3.14, 3.14]
     grip_effort = -10.0
     move_and_grasp(yumi.RIGHT, pose_ee, grip_effort)
+    pose_ee = [0.3, -0.15, 0.2, 0.0, 3.14, 3.14]
+    grip_effort = 10.0
+    move_and_grasp(yumi.RIGHT, pose_ee, grip_effort)
 
+
+    yumi.reset_arm_cal(BOTH)
     rospy.spin()
 
 
