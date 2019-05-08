@@ -16,8 +16,8 @@ upper_green = np.array([64, 255, 255])
 
 class kinect_vision:
 	def __init__(self):
-		self.cx = 400.0
-		self.cy = 400.0
+		self.cx = 400
+		self.cy = 400
 		self._tfpub = tf.TransformBroadcaster()
 		self.bridge = cv_bridge.CvBridge()
 		self.depth_sub = rospy.Subscriber('/camera/depth_registered/points', PointCloud2, self.depth_callback)
@@ -25,8 +25,9 @@ class kinect_vision:
 		#self.cxy_pub = rospy.Publisher('cxy', Tracker, queue_size=1)
 
 	def depth_callback(self,data):
-		print len(data)
+		#data_out = pc2.read_points(data, field_names = None, skip_nans = True)
 		data_out = pc2.read_points(data, field_names = None, skip_nans = True, uvs = [(self.cx, self.cy)])
+		
 		int_data = list(data_out)
 		if len(int_data) > 0:
 			(point_x, point_y, point_z, _) = int_data[0]
@@ -40,8 +41,8 @@ class kinect_vision:
 		blurred = cv2.GaussianBlur(image, (11, 11), 0)
 		hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
 
-		mask = cv2.inRange(hsv, lower_blue, upper_blue)
-		#mask = cv2.inRange(hsv, lower_red, upper_red)
+		#mask = cv2.inRange(hsv, lower_blue, upper_blue)
+		mask = cv2.inRange(hsv, lower_red, upper_red)
 		#mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
 		#mask = cv2.inRange(hsv, lower_green, upper_green)
 
@@ -60,13 +61,13 @@ class kinect_vision:
 				cx = int(M['m10']/M['m00'])
 				cy = int(M['m01']/M['m00'])
 
-		if area > 2000:
-			self.cx = cx
-			self.cy = cy
+			if area > 2000:
+				self.cx = cx
+				self.cy = cy
 #'''
-			cv2.circle(image, (cx, cy), 10, (0,0,0), -1)
-			cv2.putText(image, "({}, {})".format(int(cx), int(cy)), (int(cx-5), int(cy+15)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
-			cv2.drawContours(image, cnt, -1, (255, 255, 255),1)
+				cv2.circle(image, (cx, cy), 10, (0,0,0), -1)
+				cv2.putText(image, "({}, {})".format(int(cx), int(cy)), (int(cx-5), int(cy+15)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+				cv2.drawContours(image, cnt, -1, (255, 255, 255),1)
 
 		cv2.namedWindow("window", 1)
 		cv2.imshow("window", image)
