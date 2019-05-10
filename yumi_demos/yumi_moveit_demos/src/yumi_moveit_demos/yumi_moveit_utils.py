@@ -82,6 +82,7 @@ def init_Moveit():
     group_r = moveit_commander.MoveGroupCommander("right_arm")
     group_r.set_planner_id("ESTkConfigDefault")
     group_r.set_pose_reference_frame("yumi_body")
+    #group_r.set_pose_reference_frame("camera_link")
     group_r.allow_replanning(False)
     group_r.set_goal_position_tolerance(0.005)
     group_r.set_goal_orientation_tolerance(0.005)
@@ -538,3 +539,34 @@ def reset_pose():
     print("Resetting YuMi arms to an initial joint position with grippers closed")
 
     reset_arm(BOTH)
+
+
+#---------------------------------------------
+def reset_arm_cal(arm):
+    safeJointPositionR = [-0.00002540559258, -2.26891231537, -2.35621094704, 0.523593842983, -0.0000683009347995, 0.698178946972, -0.0000391440407839]
+    safeJointPositionL = [0.0000230647674471, -2.26880025864, 2.35622763634, 0.523519456387, -0.0000945540959947, 0.698177695274, 0.0000255938903138]
+    global group_l
+    global group_r
+    global group_both
+
+    if (arm == RIGHT):
+        group_r.set_joint_value_target(safeJointPositionR)
+        group_r.plan()
+        group_r.go(wait=True)
+        gripper_effort(RIGHT, 15.0)
+        gripper_effort(RIGHT, 0.0)
+    elif (arm == LEFT):
+        group_l.set_joint_value_target(safeJointPositionL)
+        group_l.plan()
+        group_l.go(wait=True)
+        gripper_effort(LEFT, 15.0)
+        gripper_effort(LEFT, 0.0)
+    elif (arm == BOTH):
+        group_both.set_joint_value_target(safeJointPositionL + safeJointPositionR)
+        group_both.go(wait=True)
+        gripper_effort(LEFT, 15.0)
+        gripper_effort(LEFT, 0.0)
+        gripper_effort(RIGHT, 15.0)
+        gripper_effort(RIGHT, 0.0)
+
+    rospy.sleep(1)
