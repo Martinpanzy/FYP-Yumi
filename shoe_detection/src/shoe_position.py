@@ -3,6 +3,7 @@ import rospy, sys, numpy as np
 import cv2, cv_bridge
 import sensor_msgs.point_cloud2 as pc2
 from sensor_msgs.msg import Image, PointCloud2
+from darknet_ros_msgs.msg import BoundingBoxes
 import tf
 
 lower_blue = np.array([110, 50, 50])
@@ -19,9 +20,10 @@ class kinect_vision:
 		self.cx = 400
 		self.cy = 400
 		self._tfpub = tf.TransformBroadcaster()
-		self.bridge = cv_bridge.CvBridge()
+		self.bridge = cv_bridge.CvBridge()	
 		self.depth_sub = rospy.Subscriber('/camera/depth_registered/points', PointCloud2, self.depth_callback)
 		self.image_sub = rospy.Subscriber('/camera/rgb/image_raw', Image, self.image_callback)
+		self.bbx_sub = rospy.Subscriber('/darknet_ros/bounding_boxes', BoundingBoxes, self.bbx_callback)		
 		#self.cxy_pub = rospy.Publisher('cxy', Tracker, queue_size=1)
 
 	def depth_callback(self,data):
@@ -36,13 +38,23 @@ class kinect_vision:
 			print object_tf
 			self._tfpub.sendTransform((object_tf), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "point_centroid", frame)
 
+	def bbx_callback(self,bx):
+		for box in bx.bounding_boxes:
+			if(box.Class == 'mouse'):
+				self.xmin = box.xmin
+				self.ymin = box.ymin
+				self.xmax = box.xmax
+				self.ymax = box.ymax
+				#print self.xmin, self.ymin, self.xmax, self.ymax
+
 	def image_callback(self,msg):
 		image = self.bridge.imgmsg_to_cv2(msg,'bgr8')
+		image = image[self.ymin:self.ymax, self.xmin:self.xmax]
 		blurred = cv2.GaussianBlur(image, (11, 11), 0)
 		hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
 
-		#mask = cv2.inRange(hsv, lower_blue, upper_blue)
-		mask = cv2.inRange(hsv, lower_red, upper_red)
+		mask = cv2.inRange(hsv, lower_blue, upper_blue)
+		#mask = cv2.inRange(hsv, lower_red, upper_red)
 		#mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
 		#mask = cv2.inRange(hsv, lower_green, upper_green)
 
@@ -60,8 +72,7 @@ class kinect_vision:
 			if M['m00'] > 0:
 				cx = int(M['m10']/M['m00'])
 				cy = int(M['m01']/M['m00'])
-
-			if area > 2000:
+			if area > 150 and area < 350:
 				self.cx = cx
 				self.cy = cy
 #'''

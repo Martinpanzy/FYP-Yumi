@@ -16,6 +16,7 @@
   <depend package="geometry_msgs"/>
   <depend package="moveit_msgs"/>
   <depend package="pcl"/>
+  <depend package="darknet_ros_msgs"/>
 </package>
 
 
