@@ -9,7 +9,10 @@ install pcl, python-pcl https://medium.com/@ss4365gg/%E6%88%90%E5%8A%9F%E5%9C%A8
 install darknet_ros
 
 ```
-roslaunch openni_launch openni.launch device_id:=#2
-rosrun shoe_detection shoe_position.py 
+roscore
+roslaunch openni2_launch openni2.launch
 roslaunch yumi_moveit_config yumi.launch 
+roslaunch darknet_ros darknet_ros.launch 
+rosrun shoe_detection shoe_position.py
+rosrun yumi_moveit_demos main.py 
 ```
