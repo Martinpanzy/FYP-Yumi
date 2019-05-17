@@ -541,6 +541,9 @@ def reset_pose():
     reset_arm(BOTH)
 
 
+
+
+
 #---------------------------------------------
 def reset_arm_cal(arm):
     safeJointPositionR = [-0.00002540559258, -2.26891231537, -2.35621094704, 0.523593842983, -0.0000683009347995, 0.698178946972, -0.0000391440407839]
@@ -553,20 +556,20 @@ def reset_arm_cal(arm):
         group_r.set_joint_value_target(safeJointPositionR)
         group_r.plan()
         group_r.go(wait=True)
-        gripper_effort(RIGHT, 15.0)
+        gripper_effort(RIGHT, -15.0)
         gripper_effort(RIGHT, 0.0)
     elif (arm == LEFT):
         group_l.set_joint_value_target(safeJointPositionL)
         group_l.plan()
         group_l.go(wait=True)
-        gripper_effort(LEFT, 15.0)
+        gripper_effort(LEFT, -15.0)
         gripper_effort(LEFT, 0.0)
     elif (arm == BOTH):
         group_both.set_joint_value_target(safeJointPositionL + safeJointPositionR)
         group_both.go(wait=True)
-        gripper_effort(LEFT, 15.0)
+        gripper_effort(LEFT, -15.0)
         gripper_effort(LEFT, 0.0)
-        gripper_effort(RIGHT, 15.0)
+        gripper_effort(RIGHT, -15.0)
         gripper_effort(RIGHT, 0.0)
 
-    rospy.sleep(1)
+rospy.sleep(1)
