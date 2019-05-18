@@ -5,6 +5,8 @@ import sensor_msgs.point_cloud2 as pc2
 from sensor_msgs.msg import Image, PointCloud2
 from darknet_ros_msgs.msg import BoundingBoxes
 import tf
+import ros_numpy
+import pcl
 
 lower_blue = np.array([110, 50, 50])
 upper_blue = np.array([130, 255, 255])
@@ -24,29 +26,62 @@ class kinect_vision:
 		self.depth_sub = rospy.Subscriber('/camera/depth_registered/points', PointCloud2, self.depth_callback)
 		self.image_sub = rospy.Subscriber('/camera/rgb/image_raw', Image, self.image_callback)
 		self.bbx_sub = rospy.Subscriber('/darknet_ros/bounding_boxes', BoundingBoxes, self.bbx_callback)		
-		#self.cxy_pub = rospy.Publisher('cxy', Tracker, queue_size=1)
+		#self.ptnorm_pub = rospy.Publisher('ptnorm', pcl.PointCloud, queue_size=1)
 
+
+	#get depth of shoe hole(x,y) and norm---------------------------------------------------
 	def depth_callback(self,data):
-		#data_out = pc2.read_points(data, field_names = None, skip_nans = True)
-		data_out = pc2.read_points(data, field_names = None, skip_nans = True, uvs = [(self.cx, self.cy)])
-		
+		#depth---------------------------
+		data_out = pc2.read_points(data, field_names = ('x', 'y', 'z'), skip_nans = True, uvs = [(self.cx, self.cy)])
 		int_data = list(data_out)
 		if len(int_data) > 0:
-			(point_x, point_y, point_z, _) = int_data[0]
+			point_x, point_y, point_z = int_data[0]
 			object_tf = [point_z, -point_x, -point_y]
-			frame = 'camera_link'
-			print object_tf
-			self._tfpub.sendTransform((object_tf), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "point_centroid", frame)
+			#print object_tf
+			self._tfpub.sendTransform((object_tf), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "point_centroid", 'camera_link')
+		
+		#norm-----------------------------
+		pc = ros_numpy.numpify(data) #pc[480, 640]
+		pts = np.empty((1,3))
+		for cx in range(self.cx-3, self.cx+4):
+			for cy in range(self.cy-3, self.cy+4):
+				[x, y, z, _] = pc[cy,cx]
+				if(np.isnan(x)==False and np.isnan(y)==False and np.isnan(z)==False):
+					pt = np.array([z, -x, -y])
+					pts = np.vstack((pts, pt))
+		#print(pts[1,:])
+		
+		p = pcl.PointCloud(np.array(pts, dtype = np.float32))
 
+		seg = p.make_segmenter_normals(ksearch=40)
+		seg.set_optimize_coefficients(True)
+		seg.set_model_type(pcl.SACMODEL_NORMAL_PLANE)
+		seg.set_method_type(pcl.SAC_RANSAC)
+		seg.set_distance_threshold(0.01)
+		#seg.set_normal_distance_weight(0.01)
+		seg.set_max_iterations(200)
+		indices, coefficients = seg.segment()
+		#print('Model coefficients: ' + str(coefficients[0]) + ' ' + str(coefficients[1]) + ' ' + str(coefficients[2]) + ' ' + str(coefficients[3]))
+		'''
+		print('Model inliers: ' + str(len(indices)))
+		for i in range(0, len(indices)):
+    			print (str(indices[i]) + ', x: '  + str(p[indices[i]][0]) + ', y : ' + str(p[indices[i]][1])  + ', z : ' + str(p[indices[i]][2]))
+		'''
+		ppp = object_tf - [coefficients[0], coefficients[1], coefficients[2]]
+		self._tfpub.sendTransform((ppp), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "norm_centroid", 'camera_link')
+
+		
+	#find shoe bounding box------------------------------------------------------------------
 	def bbx_callback(self,bx):
 		for box in bx.bounding_boxes:
-			if(box.Class == 'mouse'):
+			if(box.Class == 'mouse' or box.Class == 'remote'):
 				self.xmin = box.xmin
 				self.ymin = box.ymin
 				self.xmax = box.xmax
 				self.ymax = box.ymax
 				#print self.xmin, self.ymin, self.xmax, self.ymax
 
+	#find shoe hole x,y position-------------------------------------------------------------
 	def image_callback(self,msg):
 		image = self.bridge.imgmsg_to_cv2(msg,'bgr8')
 		image = image[self.ymin:self.ymax, self.xmin:self.xmax]
@@ -73,8 +108,8 @@ class kinect_vision:
 				cx = int(M['m10']/M['m00'])
 				cy = int(M['m01']/M['m00'])
 			if area > 150 and area < 350:
-				self.cx = cx
-				self.cy = cy
+				self.cx = cx + self.xmin
+				self.cy = cy + self.ymin
 #'''
 				cv2.circle(image, (cx, cy), 10, (0,0,0), -1)
 				cv2.putText(image, "({}, {})".format(int(cx), int(cy)), (int(cx-5), int(cy+15)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
