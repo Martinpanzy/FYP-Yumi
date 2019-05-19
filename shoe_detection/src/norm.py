@@ -44,3 +44,16 @@ def listener():
 	rospy.spin()
 if __name__ == '__main__':
 	listener()
+
+
+'''
+		pc_list = []
+		for cx in range(self.cx-3, self.cx+4):
+			for cy in range(self.cy-3, self.cy+4):
+				data_out = pc2.read_points(data, field_names = ('x', 'y', 'z'), skip_nans = True, uvs = [(cx, cy)])
+				pc_list.append([data_out[0], data_out[1], data_out[2]])
+		p = pcl.PointCloud()
+		p.from_list(pc_list)
+		#self.ptnorm_pub.publish(p)
+		print('success')
+'''

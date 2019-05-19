@@ -8,8 +8,11 @@ import tf
 import ros_numpy
 import pcl
 
-lower_blue = np.array([110, 50, 50])
-upper_blue = np.array([130, 255, 255])
+#lower_blue = np.array([110, 50, 50])
+#upper_blue = np.array([130, 255, 255])
+lower_blue = np.array([100, 100, 50])
+upper_blue = np.array([120, 255, 255])
+
 lower_red = np.array([136,87,111])
 upper_red = np.array([180,255,255])
 lower_yellow = np.array([22,60,200])
@@ -38,13 +41,13 @@ class kinect_vision:
 			point_x, point_y, point_z = int_data[0]
 			object_tf = [point_z, -point_x, -point_y]
 			#print object_tf
-			self._tfpub.sendTransform((object_tf), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "point_centroid", 'camera_link')
+			self._tfpub.sendTransform((object_tf), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "shoe_hole", 'camera_link')
 		
 		#norm-----------------------------
 		pc = ros_numpy.numpify(data) #pc[480, 640]
 		pts = np.empty((1,3))
-		for cx in range(self.cx-3, self.cx+4):
-			for cy in range(self.cy-3, self.cy+4):
+		for cx in range(self.cx-5, self.cx+6):
+			for cy in range(self.cy-3, self.cy+8):
 				[x, y, z, _] = pc[cy,cx]
 				if(np.isnan(x)==False and np.isnan(y)==False and np.isnan(z)==False):
 					pt = np.array([z, -x, -y])
@@ -53,28 +56,30 @@ class kinect_vision:
 		
 		p = pcl.PointCloud(np.array(pts, dtype = np.float32))
 
-		seg = p.make_segmenter_normals(ksearch=40)
+		seg = p.make_segmenter_normals(ksearch=50)
 		seg.set_optimize_coefficients(True)
 		seg.set_model_type(pcl.SACMODEL_NORMAL_PLANE)
 		seg.set_method_type(pcl.SAC_RANSAC)
 		seg.set_distance_threshold(0.01)
 		#seg.set_normal_distance_weight(0.01)
-		seg.set_max_iterations(200)
+		seg.set_max_iterations(100)
 		indices, coefficients = seg.segment()
-		#print('Model coefficients: ' + str(coefficients[0]) + ' ' + str(coefficients[1]) + ' ' + str(coefficients[2]) + ' ' + str(coefficients[3]))
+		print('Model coefficients: ' + str(coefficients[0]) + ' ' + str(coefficients[1]) + ' ' + str(coefficients[2]) + ' ' + str(coefficients[3]))
 		'''
 		print('Model inliers: ' + str(len(indices)))
 		for i in range(0, len(indices)):
     			print (str(indices[i]) + ', x: '  + str(p[indices[i]][0]) + ', y : ' + str(p[indices[i]][1])  + ', z : ' + str(p[indices[i]][2]))
-		'''
-		ppp = object_tf - [coefficients[0], coefficients[1], coefficients[2]]
-		self._tfpub.sendTransform((ppp), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "norm_centroid", 'camera_link')
+		'''	
+		ppp = [-0.2*coefficients[0], -0.2*coefficients[1], -0.2*coefficients[2]]
+		#print ppp
+		#if(ppp[0] < 0):
+		self._tfpub.sendTransform((ppp), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "norm_shoe_shole", 'shoe_hole')
 
 		
 	#find shoe bounding box------------------------------------------------------------------
 	def bbx_callback(self,bx):
 		for box in bx.bounding_boxes:
-			if(box.Class == 'mouse' or box.Class == 'remote'):
+			if(box.Class == 'shoe'):
 				self.xmin = box.xmin
 				self.ymin = box.ymin
 				self.xmax = box.xmax
@@ -107,7 +112,8 @@ class kinect_vision:
 			if M['m00'] > 0:
 				cx = int(M['m10']/M['m00'])
 				cy = int(M['m01']/M['m00'])
-			if area > 150 and area < 350:
+			#if area > 80 and area < 120:
+			if area > 80:
 				self.cx = cx + self.xmin
 				self.cy = cy + self.ymin
 #'''
