@@ -17,7 +17,7 @@ RIGHT = 1       #:ID of the right arm
 BOTH = 3        #:ID of both_arms
 PI = 3.1415926  #:Value of PI
 
-table_height = 0.045#:The height of the upper surface of the table
+table_height = -0.05#:The height of the upper surface of the table
 
 global group_l  #:The move group for the left arm
 global group_r  #:The move group for the right arm
@@ -60,10 +60,10 @@ def init_Moveit():
     p.header.frame_id = robot.get_planning_frame()
 
     # add a table
-    # p.pose.position.x = 0.625
-    # p.pose.position.y = 0.0
-    # p.pose.position.z = table_height
-    # scene.add_box("table", p, (1, 2, 0.1))
+    p.pose.position.x = 0.4
+    p.pose.position.y = 0
+    p.pose.position.z = table_height
+    scene.add_box("table", p, (0.75, 1.0, 0.035))
 
     # add an object to be grasped
     # p.pose.position.x = 0.205

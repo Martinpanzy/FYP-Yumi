@@ -79,7 +79,7 @@ def run():
     #yumi.print_current_joint_states(yumi.LEFT)
 
     # Print current joint angles
-    yumi.print_current_pose(yumi.RIGHT)
+    #yumi.print_current_pose(yumi.RIGHT)
 
 
     # Reset YuMi joints to "home" position
@@ -89,18 +89,21 @@ def run():
     # Drive YuMi end effectors to a desired position (pose_ee), and perform a grasping task with a given effort (grip_effort)
     # Gripper effort: opening if negative, closing if positive, static if zero
     #pose_ee = [0.3, 0.15, 0.2, 0.0, 3.14, 3.14]
-    ##pose_ee = [0.3, 0.15, 0.2, 0.0, 0.0, 3.14]
     #grip_effort = -10.0
     #move_and_grasp(yumi.LEFT, pose_ee, grip_effort)
 
-    pose_ee = [0.55, 0.0128, 0.3, 0.0, 3.14, 3.14]
-    #pose_ee = [0.5, -0.15, 0.1, 0.0, 3.14, 3.14]
+    #pose_ee = [0.3, -0.15, 0.23, 0.0, 3.14, 3.14]
+    pose_ee = [0.5, -0.15, 0.23, 0, 0, 0]
     grip_effort = -10.0
     move_and_grasp(yumi.RIGHT, pose_ee, grip_effort)
-    #pose_ee = [0.3, -0.15, 0.2, 0.0, 3.14, 3.14]
-    #grip_effort = 10.0
-    #move_and_grasp(yumi.RIGHT, pose_ee, grip_effort)
 
+    #pose_ee = [0.3, -0.15, 0.23, 0.0, 3.14*3/2, 3.14]
+    pose_ee = [0.5, -0.15, 0.23, 0, 0, 3.14/2]
+    move_and_grasp(yumi.RIGHT, pose_ee, grip_effort)
+    pose_ee = [0.5, -0.15, 0.23, 0, 0, 3.14]
+    move_and_grasp(yumi.RIGHT, pose_ee, grip_effort)
+
+    yumi.reset_arm(RIGHT)
     yumi.reset_arm_cal(RIGHT)
     rospy.spin()
 
@@ -109,7 +112,7 @@ def tf_listener():
 	listener = tf.TransformListener()
 	while not rospy.is_shutdown():
 		try:
-			(trans,rot) = listener.lookupTransform('/yumi_body', '/point_centroid', rospy.Time(0))
+			(trans,rot) = listener.lookupTransform('/yumi_body', '/shoe_hole', rospy.Time(0))
 		except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
 			continue
 		print(trans[0], trans[1], trans[2])
