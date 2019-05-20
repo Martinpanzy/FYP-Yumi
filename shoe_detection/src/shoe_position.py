@@ -7,6 +7,7 @@ from darknet_ros_msgs.msg import BoundingBoxes
 import tf
 import ros_numpy
 import pcl
+from sklearn.cluster import KMeans
 
 #lower_blue = np.array([110, 50, 50])
 #upper_blue = np.array([130, 255, 255])
@@ -28,7 +29,8 @@ class kinect_vision:
 		self.bridge = cv_bridge.CvBridge()	
 		self.depth_sub = rospy.Subscriber('/camera/depth_registered/points', PointCloud2, self.depth_callback)
 		self.image_sub = rospy.Subscriber('/camera/rgb/image_raw', Image, self.image_callback)
-		self.bbx_sub = rospy.Subscriber('/darknet_ros/bounding_boxes', BoundingBoxes, self.bbx_callback)		
+		self.bbx_sub = rospy.Subscriber('/darknet_ros/bounding_boxes', BoundingBoxes, self.bbx_callback)
+		self.coe = np.empty((0,3))		
 		#self.ptnorm_pub = rospy.Publisher('ptnorm', pcl.PointCloud, queue_size=1)
 
 
@@ -45,14 +47,14 @@ class kinect_vision:
 		
 		#norm-----------------------------
 		pc = ros_numpy.numpify(data) #pc[480, 640]
-		pts = np.empty((1,3))
-		for cx in range(self.cx-5, self.cx+6):
-			for cy in range(self.cy-3, self.cy+8):
+		pts = np.empty((0,3))
+		for cx in range(self.cx-6, self.cx+7):
+			for cy in range(self.cy-3, self.cy+5):
 				[x, y, z, _] = pc[cy,cx]
 				if(np.isnan(x)==False and np.isnan(y)==False and np.isnan(z)==False):
 					pt = np.array([z, -x, -y])
 					pts = np.vstack((pts, pt))
-		#print(pts[1,:])
+		#print(len(pts))
 		
 		p = pcl.PointCloud(np.array(pts, dtype = np.float32))
 
@@ -64,18 +66,26 @@ class kinect_vision:
 		#seg.set_normal_distance_weight(0.01)
 		seg.set_max_iterations(100)
 		indices, coefficients = seg.segment()
-		print('Model coefficients: ' + str(coefficients[0]) + ' ' + str(coefficients[1]) + ' ' + str(coefficients[2]) + ' ' + str(coefficients[3]))
+		#print('Model coefficients: ' + str(coefficients[0]) + ' ' + str(coefficients[1]) + ' ' + str(coefficients[2]) + ' ' + str(coefficients[3]))
 		'''
 		print('Model inliers: ' + str(len(indices)))
 		for i in range(0, len(indices)):
     			print (str(indices[i]) + ', x: '  + str(p[indices[i]][0]) + ', y : ' + str(p[indices[i]][1])  + ', z : ' + str(p[indices[i]][2]))
-		'''	
-		ppp = [-0.2*coefficients[0], -0.2*coefficients[1], -0.2*coefficients[2]]
-		#print ppp
-		#if(ppp[0] < 0):
-		self._tfpub.sendTransform((ppp), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "norm_shoe_shole", 'shoe_hole')
+		'''
+		if(np.isnan(coefficients[0])==False and np.isnan(coefficients[1])==False and np.isnan(coefficients[2])==False):
+			if len(self.coe) < 100:	
+				self.coe = np.vstack((self.coe, [coefficients[0], coefficients[1], coefficients[2]]))
+			else:
+				#kmeans = KMeans(n_clusters = 5).fit(self.coe)
+				#print(len(kmeans.labels_))
+				#l = np.bincount(kmeans.labels_).argmax()
+				#self.coe = self.coe[np.where(kmeans.labels_ == l)]
+			
+				self.coe = np.mean(self.coe, axis=0)
+				ppp = [-0.2*self.coe[0], -0.2*self.coe[1], -0.2*self.coe[2]]
+				self._tfpub.sendTransform((ppp), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "norm_shoe_shole", 'shoe_hole')
+				self.coe = np.empty((0,3))
 
-		
 	#find shoe bounding box------------------------------------------------------------------
 	def bbx_callback(self,bx):
 		for box in bx.bounding_boxes:
@@ -113,7 +123,7 @@ class kinect_vision:
 				cx = int(M['m10']/M['m00'])
 				cy = int(M['m01']/M['m00'])
 			#if area > 80 and area < 120:
-			if area > 80:
+			if area > 70:
 				self.cx = cx + self.xmin
 				self.cy = cy + self.ymin
 #'''
