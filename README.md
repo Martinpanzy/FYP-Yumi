@@ -8,6 +8,7 @@ Install pcl, python-pcl https://medium.com/@ss4365gg/%E6%88%90%E5%8A%9F%E5%9C%A8
 
 Install darknet_ros
 
+Run shoe lacing
 ```
 roscore
 roslaunch openni2_launch openni2.launch
