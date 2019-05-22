@@ -10,13 +10,14 @@ import moveit_msgs.msg
 import geometry_msgs.msg
 from std_srvs.srv import Empty
 import numpy as np
+from math import pi
 
 import tf
 
 LEFT = 2        #:ID of the left arm
 RIGHT = 1       #:ID of the right arm
 BOTH = 3        #:ID of both_arms
-xoff = -0.018
+xoff = -0.019
 yoff = -0.031
 zoff = 0.17 #0.16268
 
@@ -63,7 +64,29 @@ def move_and_grasp(arm, pose_ee, grip_effort):
         print("The gripper effort values should be in the range [-20, 20]")
 
 
-def run(pose_norm, pose):
+def gogo():
+    rospy.init_node('yumi_moveit_demo')
+    yumi.init_Moveit()
+    yumi.reset_arm(RIGHT)
+
+    pose_ee = [0.434005683206-0.0487, -0.0961810727705-0.0611972, 0.473064100286, 0.368249985396, 3.43216339449, pi]
+    grip_effort = 10.0
+    move_and_grasp(yumi.RIGHT, pose_ee, grip_effort)
+
+
+    pose_ee = [0.51313555474-0.0487, 0.00592207424306-0.0611972, 0.208446196177, 0.368249985396, 3.43216339449, pi]
+    grip_effort = -10.0
+    move_and_grasp(yumi.RIGHT, pose_ee, grip_effort)
+
+    pose_ee = [0.434005683206-0.0487, -0.0961810727705-0.0611972, 0.473064100286, 0.368249985396, 3.43216339449, pi]
+    move_and_grasp(yumi.RIGHT, pose_ee, grip_effort)
+
+    yumi.reset_arm(RIGHT)
+    yumi.reset_arm_cal(RIGHT)
+    rospy.spin()
+
+
+def run(pose_norm, pose_n, pose):
     """Starts the node
 
     Runs to start the node and initialize everthing. Runs forever via Spin()
@@ -96,21 +119,17 @@ def run(pose_norm, pose):
     #grip_effort = -10.0
     #move_and_grasp(yumi.LEFT, pose_ee, grip_effort)
 
-    #pose_ee = [0.3, -0.15, 0.23, 0.0, 3.14, 3.14]
-    #pose_ee = [xn, yn, zn+0.01, 0, 3.14, 3.14]
+    pose_ee = [0.3, -0.15, 0.23, 0.0, pi, pi]
     grip_effort = 10.0
     move_and_grasp(yumi.RIGHT, pose_norm, grip_effort)
 
-    #pose_ee = [0.3, -0.15, 0.23, 0.0, 3.14*3/2, 3.14]
-    #pose_ee = [x, y, z+0.01, 0, 3.14, 3.14]
-    grip_effort = 10.0
-    move_and_grasp(yumi.RIGHT, pose, grip_effort)
 
-    #pose_ee = [xn, yn, zn+0.01, 0, 3.14, 3.14]
+    pose_ee = [0.3, -0.15, 0.23, 0.0, pi*1.25, pi]
     grip_effort = -10.0
-    move_and_grasp(yumi.RIGHT, pose_norm, grip_effort)
-    #pose_ee = [0.5, -0.15, 0.23, 0, 0, 3.14]
-    #move_and_grasp(yumi.RIGHT, pose_ee, grip_effort)
+    move_and_grasp(yumi.RIGHT, pose_n, grip_effort)
+
+    pose_ee = [0.3, -0.15, 0.23, pi/3, pi*1.25, pi]
+    move_and_grasp(yumi.RIGHT, pose, grip_effort)
 
     yumi.reset_arm(RIGHT)
     yumi.reset_arm_cal(RIGHT)
@@ -126,32 +145,50 @@ def tf_listener():
 			(trans_norm,rot_norm) = listener.lookupTransform('/yumi_body', '/norm_shoe_shole', rospy.Time(0))
 		except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
 			continue
-		x = trans[0]+xoff
-		y = trans[1]+yoff
-		z = trans[2]+zoff
-		xn = trans_norm[0]+xoff
-		yn = trans_norm[1]+yoff
-		zn = trans_norm[2]+zoff
-		print(x, y, z, '------', xn, yn, zn)
+		x = trans[0]
+		y = trans[1]
+		z = trans[2]
+		xn = trans_norm[0]
+		yn = trans_norm[1]
+		zn = trans_norm[2]
 		
-		a = np.arctan((zn - z)/(x - xn))
-		b = np.arctan((zn - z)/(y - yn))
-		print a, b
+		a = np.arctan2((zn - z),(y - yn))
+		if(a>=0 and a<=pi):
+			yoff = yoff - zoff*np.cos(a)
+			a = pi/2 - a
+		else: a = 0.0
 		
+		b = np.arctan2((x - xn),(zn - z)) + pi
+		if(b>=pi and b<=1.5*pi): 
+			xoff = xoff - zoff*np.sina(b - pi)
+		else: b = pi
+		
+		x = x+xoff
+		y = y+yoff
+		z = z+zoff
+		xn = xn+xoff
+		yn = yn+yoff
+		zn = zn+zoff
+		
+		print x, y, z, xn, yn, zn, a, b
+		
+		'''
 		if(np.isnan(a)==False and np.isnan(b)==False):
-			pose_norm = [xn, yn, zn+0.01, 3*3.14/2-b, 3*3.14/2-a, 3.14]
-			pose = [x, y, z+0.01, 3*3.14/2-b, 3*3.14/2-a, 3.14]
+			pose_norm = [xn, yn, zn+0.01, a, b, pi]
+			pose_n = [xnn, ynn, znn+0.01, a, b, pi]
+			pose = [x, y, z+0.01, a, b, pi]
 
 			while receive == True:
 				receive = False
-				run(pose_norm, pose)
+				run(pose_norm, pose_n, pose)
 			
 			#receive = True
-
+		'''
+		
 if __name__ == '__main__':
     try:
-        #run()
-	tf_listener()
+        gogo()
+	#tf_listener()
 
     	print "####################################     Program finished     ####################################"
     except rospy.ROSInterruptException:
