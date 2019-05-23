@@ -69,16 +69,16 @@ def gogo():
     yumi.init_Moveit()
     yumi.reset_arm(RIGHT)
 
-    pose_ee = [0.434005683206-0.0487, -0.0961810727705-0.0611972, 0.473064100286, 0.368249985396, 3.43216339449, pi]
+    pose_ee = [0.49737411353347538, -0.054727560716930274, 0.3267979271322804, 0.34650377803338017, 3.4145974040449381, pi]
     grip_effort = 10.0
     move_and_grasp(yumi.RIGHT, pose_ee, grip_effort)
 
 
-    pose_ee = [0.51313555474-0.0487, 0.00592207424306-0.0611972, 0.208446196177, 0.368249985396, 3.43216339449, pi]
+    pose_ee = [0.53510218995843928, -0.0060749227193361982, 0.19205274578201956, 0.34650377803338017, 3.4145974040449381, pi]
     grip_effort = -10.0
     move_and_grasp(yumi.RIGHT, pose_ee, grip_effort)
 
-    pose_ee = [0.434005683206-0.0487, -0.0961810727705-0.0611972, 0.473064100286, 0.368249985396, 3.43216339449, pi]
+    pose_ee = [0.49737411353347538, -0.054727560716930274, 0.3267979271322804, 0.34650377803338017, 3.4145974040449381, pi]
     move_and_grasp(yumi.RIGHT, pose_ee, grip_effort)
 
     yumi.reset_arm(RIGHT)
@@ -86,7 +86,7 @@ def gogo():
     rospy.spin()
 
 
-def run(pose_norm, pose_n, pose):
+def run(pose_norm, pose):
     """Starts the node
 
     Runs to start the node and initialize everthing. Runs forever via Spin()
@@ -119,17 +119,13 @@ def run(pose_norm, pose_n, pose):
     #grip_effort = -10.0
     #move_and_grasp(yumi.LEFT, pose_ee, grip_effort)
 
-    pose_ee = [0.3, -0.15, 0.23, 0.0, pi, pi]
     grip_effort = 10.0
     move_and_grasp(yumi.RIGHT, pose_norm, grip_effort)
 
-
-    pose_ee = [0.3, -0.15, 0.23, 0.0, pi*1.25, pi]
     grip_effort = -10.0
-    move_and_grasp(yumi.RIGHT, pose_n, grip_effort)
-
-    pose_ee = [0.3, -0.15, 0.23, pi/3, pi*1.25, pi]
     move_and_grasp(yumi.RIGHT, pose, grip_effort)
+
+    move_and_grasp(yumi.RIGHT, pose_norm, grip_effort)
 
     yumi.reset_arm(RIGHT)
     yumi.reset_arm_cal(RIGHT)
@@ -152,43 +148,45 @@ def tf_listener():
 		yn = trans_norm[1]
 		zn = trans_norm[2]
 		
-		a = np.arctan2((zn - z),(y - yn))
-		if(a>=0 and a<=pi):
-			yoff = yoff - zoff*np.cos(a)
-			a = pi/2 - a
-		else: a = 0.0
-		
-		b = np.arctan2((x - xn),(zn - z)) + pi
-		if(b>=pi and b<=1.5*pi): 
-			xoff = xoff - zoff*np.sina(b - pi)
-		else: b = pi
-		
-		x = x+xoff
-		y = y+yoff
-		z = z+zoff
-		xn = xn+xoff
-		yn = yn+yoff
-		zn = zn+zoff
-		
-		print x, y, z, xn, yn, zn, a, b
-		
-		'''
-		if(np.isnan(a)==False and np.isnan(b)==False):
-			pose_norm = [xn, yn, zn+0.01, a, b, pi]
-			pose_n = [xnn, ynn, znn+0.01, a, b, pi]
-			pose = [x, y, z+0.01, a, b, pi]
+		if(0<xn<=x and zn>=z>0):
+			a = np.arctan2((zn - z),(y - yn))
+			b = np.arctan2((x - xn),(zn - z)) + pi
 
-			while receive == True:
-				receive = False
-				run(pose_norm, pose_n, pose)
+			if(a>=0 and a<=pi and b>=pi and b<=1.5*pi):
+				#zoff = zoff - [zoff*(1 - np.sin(a)*np.cos(b - pi))]
+				#zoffset = zoff/(np.sin(a)*np.cos(b-pi))
+				zoffset = zoff*(1 - np.sin(a)*np.cos(b - pi))
+				yoffset = yoff - zoff*np.cos(a)
+				xoffset = xoff - zoff*np.sin(b - pi)
+				a = pi/2 - a
+			else: 
+				a = 0.0
+				b = pi		 
+		
+			x = x+xoffset
+			y = y+yoffset
+			z = z+zoff
+			xn = xn+xoffset
+			yn = yn+yoffset
+			zn = zn+zoff
+		
+			print (x, y, z, xn, yn, zn, a, b)
+			#'''
+			if(np.isnan(a)==False and np.isnan(b)==False):
+				pose_norm = [xn, yn, zn, a, b, pi]
+				pose = [x, y, z, a, b, pi]
+
+				while receive == True:
+					receive = False
+					run(pose_norm, pose)
 			
-			#receive = True
-		'''
+				#receive = True
+			#'''
 		
 if __name__ == '__main__':
     try:
-        gogo()
-	#tf_listener()
+        #gogo()
+	tf_listener()
 
     	print "####################################     Program finished     ####################################"
     except rospy.ROSInterruptException:
