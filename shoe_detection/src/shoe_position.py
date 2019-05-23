@@ -49,7 +49,7 @@ class kinect_vision:
 		pc = ros_numpy.numpify(data) #pc[480, 640]
 		pts = np.empty((0,3))
 		for cx in range(self.cx-5, self.cx+6):
-			for cy in range(self.cy-3, self.cy+7):
+			for cy in range(self.cy-3, self.cy+6):
 				[x, y, z, _] = pc[cy,cx]
 				if(np.isnan(x)==False and np.isnan(y)==False and np.isnan(z)==False):
 					pt = np.array([z, -x, -y])
@@ -81,8 +81,10 @@ class kinect_vision:
 				#self.coe = self.coe[np.where(kmeans.labels_ == l)]
 			
 				self.coe = np.mean(self.coe, axis=0)
-				ppp = [-0.23*self.coe[0], -0.23*self.coe[1], -0.23*self.coe[2]]
-				self._tfpub.sendTransform((ppp), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "norm_shoe_shole", 'shoe_hole')
+				ppp = [-0.2*self.coe[0], -0.2*self.coe[1], -0.2*self.coe[2]]
+				if(ppp[0]<=0):
+					#print(ppp, object_tf)
+					self._tfpub.sendTransform((ppp), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "norm_shoe_shole", 'shoe_hole')
 				self.coe = np.empty((0,3))
 
 	#find shoe bounding box------------------------------------------------------------------
@@ -116,12 +118,12 @@ class kinect_vision:
 		if len(cnts) > 0:
 			cnt = max(cnts, key=cv2.contourArea)
 			area = cv2.contourArea(cnt)
-			#print area
+			print area
 			M = cv2.moments(cnt)
 			if M['m00'] > 0:
 				cx = int(M['m10']/M['m00'])
 				cy = int(M['m01']/M['m00'])
-			if area > 33 and area < 110:
+			if area > 33 and area < 200:
 			#if area > 70:
 				self.cx = cx + self.xmin
 				self.cy = cy + self.ymin
