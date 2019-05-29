@@ -48,8 +48,8 @@ class kinect_vision:
 		#norm-----------------------------
 		pc = ros_numpy.numpify(data) #pc[480, 640]
 		pts = np.empty((0,3))
-		for cx in range(self.cx-5, self.cx+6):
-			for cy in range(self.cy-3, self.cy+6):
+		for cx in range(self.cx-4, self.cx+5):
+			for cy in range(self.cy-4, self.cy+5):
 				[x, y, z, _] = pc[cy,cx]
 				if(np.isnan(x)==False and np.isnan(y)==False and np.isnan(z)==False):
 					pt = np.array([z, -x, -y])
@@ -63,7 +63,7 @@ class kinect_vision:
 		seg.set_method_type(pcl.SAC_RANSAC)
 		seg.set_distance_threshold(0.01)
 		#seg.set_normal_distance_weight(0.01)
-		seg.set_max_iterations(100)
+		seg.set_max_iterations(200)
 		indices, coefficients = seg.segment()
 		#print('Model coefficients: ' + str(coefficients[0]) + ' ' + str(coefficients[1]) + ' ' + str(coefficients[2]) + ' ' + str(coefficients[3]))
 		'''
@@ -81,7 +81,7 @@ class kinect_vision:
 				#self.coe = self.coe[np.where(kmeans.labels_ == l)]
 			
 				self.coe = np.mean(self.coe, axis=0)
-				ppp = [-0.2*self.coe[0], -0.2*self.coe[1], -0.2*self.coe[2]]
+				ppp = [-0.1*self.coe[0], -0.1*self.coe[1], -0.1*self.coe[2]]
 				if(ppp[0]<=0):
 					#print(ppp, object_tf)
 					self._tfpub.sendTransform((ppp), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "norm_shoe_shole", 'shoe_hole')
@@ -123,7 +123,7 @@ class kinect_vision:
 			if M['m00'] > 0:
 				cx = int(M['m10']/M['m00'])
 				cy = int(M['m01']/M['m00'])
-			if area > 33 and area < 200:
+			if area > 50 and area < 300:
 			#if area > 70:
 				self.cx = cx + self.xmin
 				self.cy = cy + self.ymin
