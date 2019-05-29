@@ -17,9 +17,10 @@ import tf
 LEFT = 2        #:ID of the left arm
 RIGHT = 1       #:ID of the right arm
 BOTH = 3        #:ID of both_arms
-xoff = -0.019
-yoff = -0.031
-zoff = 0.17 #0.16268
+xoff = -0.0205
+yoff = -0.028
+gripperoff = 0.136
+zoff = 0.17 - gripperoff #0.16268
 
 def close_grippers(arm):
     """Closes the grippers.
@@ -69,16 +70,16 @@ def gogo():
     yumi.init_Moveit()
     yumi.reset_arm(RIGHT)
 
-    pose_ee = [0.49737411353347538, -0.054727560716930274, 0.3267979271322804, 0.34650377803338017, 3.4145974040449381, pi]
+    pose_ee = [0.47221014192621696, 0.045967072781602086, 0.25805372847756469, -0.156460582151150573, 3.4849516333754034, pi]
     grip_effort = 10.0
     move_and_grasp(yumi.RIGHT, pose_ee, grip_effort)
 
 
-    pose_ee = [0.53510218995843928, -0.0060749227193361982, 0.19205274578201956, 0.34650377803338017, 3.4145974040449381, pi]
-    grip_effort = -10.0
+    pose_ee = [0.50549305480859519, 0.040705357535096784, 0.16496005562266958, -0.156460582151150573, 3.4849516333754034, pi]
+    grip_effort = -5.0
     move_and_grasp(yumi.RIGHT, pose_ee, grip_effort)
 
-    pose_ee = [0.49737411353347538, -0.054727560716930274, 0.3267979271322804, 0.34650377803338017, 3.4145974040449381, pi]
+    pose_ee = [0.47221014192621696, 0.045967072781602086, 0.25805372847756469, -0.156460582151150573, 3.4849516333754034, pi]
     move_and_grasp(yumi.RIGHT, pose_ee, grip_effort)
 
     yumi.reset_arm(RIGHT)
@@ -155,14 +156,15 @@ def tf_listener():
 			if(a>=0 and a<=pi and b>=pi and b<=1.5*pi):
 				#zoff = zoff - [zoff*(1 - np.sin(a)*np.cos(b - pi))]
 				#zoffset = zoff/(np.sin(a)*np.cos(b-pi))
-				zoffset = zoff*np.sin(a)*np.cos(b - pi)
-				yoffset = yoff - zoff*np.cos(a)
-				xoffset = xoff - zoff*np.sin(b - pi)
+				zoffset = gripperoff*np.sin(a)*np.cos(b - pi) + zoff
+				yoffset = yoff - (zoff+gripperoff)*np.cos(a)
+				xoffset = xoff - (zoff+gripperoff)*np.sin(b - pi)
 				a = pi/2 - a
 			else: 
 				a = 0.0
-				b = pi		 
-		
+				b = pi		
+			
+			
 			x = x+xoffset
 			y = y+yoffset
 			z = z+zoffset
@@ -171,7 +173,8 @@ def tf_listener():
 			zn = zn+zoffset
 		
 			print (x, y, z, xn, yn, zn, a, b)
-			#'''
+
+			'''
 			if(np.isnan(a)==False and np.isnan(b)==False):
 				pose_norm = [xn, yn, zn, a, b, pi]
 				pose = [x, y, z, a, b, pi]
@@ -181,12 +184,12 @@ def tf_listener():
 					run(pose_norm, pose)
 			
 				#receive = True
-			#'''
+			'''
 		
 if __name__ == '__main__':
     try:
-        #gogo()
-	tf_listener()
+        gogo()
+	#tf_listener()
 
     	print "####################################     Program finished     ####################################"
     except rospy.ROSInterruptException:
