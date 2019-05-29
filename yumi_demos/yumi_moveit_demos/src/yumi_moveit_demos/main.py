@@ -155,7 +155,7 @@ def tf_listener():
 			if(a>=0 and a<=pi and b>=pi and b<=1.5*pi):
 				#zoff = zoff - [zoff*(1 - np.sin(a)*np.cos(b - pi))]
 				#zoffset = zoff/(np.sin(a)*np.cos(b-pi))
-				zoffset = zoff*(2 - np.sin(a)*np.cos(b - pi))
+				zoffset = zoff*np.sin(a)*np.cos(b - pi)
 				yoffset = yoff - zoff*np.cos(a)
 				xoffset = xoff - zoff*np.sin(b - pi)
 				a = pi/2 - a
