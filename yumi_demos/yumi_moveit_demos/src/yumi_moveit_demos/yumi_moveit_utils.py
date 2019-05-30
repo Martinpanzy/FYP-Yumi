@@ -88,7 +88,7 @@ def init_Moveit():
     group_r.set_goal_orientation_tolerance(0.005)
 
     group_both = moveit_commander.MoveGroupCommander("both_arms")
-    group_both.set_planner_id("ESTkConfigDefault")
+    group_both.set_planner_id("Pan")
     group_both.set_pose_reference_frame("yumi_body")
     group_both.allow_replanning(False)
     group_both.set_goal_position_tolerance(0.005)
@@ -547,6 +547,57 @@ def reset_pose():
 
 
 #---------------------------------------------
+def plan_and_move_dual(target_l, target_r):
+    arm = 'both'
+
+    group_both.set_pose_target(target_l, "yumi_link_7_l")
+    group_both.set_pose_target(target_r, "yumi_link_7_r")
+    plan = group_both.plan()
+    group_both.go(wait=True)
+    rospy.sleep(3)
+
+
+def plan_path_dual(points_l, points_r, planning_tries = 500):
+    global robot
+    global group_l
+    global group_r
+
+    waypoints_l = []
+    waypoints_r = []
+    for point in points_l:
+        wpose = create_pose_euler(point[0], point[1], point[2], point[3], point[4], point[5])
+        waypoints_l.append(copy.deepcopy(wpose))
+	
+    for point in points_r:
+        wpose = create_pose_euler(point[0], point[1], point[2], point[3], point[4], point[5])
+        waypoints_r.append(copy.deepcopy(wpose))
+
+    group_both.set_start_state_to_current_state()
+
+    attempts = 0
+    fraction = 0.0
+
+    while fraction < 1.0 and attempts < planning_tries:
+        (plan_l, fraction_l) = group_l.compute_cartesian_path(waypoints_l, 0.01, 0.0, True)
+	(plan_r, fraction_r) = group_r.compute_cartesian_path(waypoints_r, 0.01, 0.0, True)
+
+        attempts += 1
+        if (fraction_l == 1.0 and fraction_r == 1.0):
+            plan_l = group_l.retime_trajectory(robot.get_current_state(), plan_l, 1.0)
+            return plan_l
+            plan_r = group_r.retime_trajectory(robot.get_current_state(), plan_r, 1.0)
+            return plan_r
+            group_l.execute(plan_l)
+            group_r.execute(plan_r)
+
+    if (fraction < 1.0):
+        rospy.logerr('Only managed to calculate ' + str(fraction*100) + '% of the path!')
+        raise Exception('Could not calculate full path, exiting')
+
+    return None
+
+
+
 def reset_arm_cal(arm):
     safeJointPositionR = [-0.00002540559258, -2.26891231537, -2.35621094704, 0.523593842983, -0.0000683009347995, 0.698178946972, -0.0000391440407839]
     safeJointPositionL = [0.0000230647674471, -2.26880025864, 2.35622763634, 0.523519456387, -0.0000945540959947, 0.698177695274, 0.0000255938903138]

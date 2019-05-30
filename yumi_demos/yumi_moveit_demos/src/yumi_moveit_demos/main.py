@@ -68,22 +68,23 @@ def move_and_grasp(arm, pose_ee, grip_effort):
 def gogo():
     rospy.init_node('yumi_moveit_demo')
     yumi.init_Moveit()
-    yumi.reset_arm(RIGHT)
 
-    pose_ee = [0.5, 0.2, 0.15, 0.0, pi, pi]
-    grip_effort = 10.0
-    move_and_grasp(yumi.RIGHT, pose_ee, grip_effort)
+    yumi.reset_arm(BOTH)
+    p_l = [0.5616441709329076, 0.29191685526372509, 0.17, 0, pi, pi]
+    p_r = [0.42175045517972104, -0.29619380898624302, 0.17, 0, pi, pi]
+    yumi.plan_path_dual([p_l], [p_r])
+
+    #yumi.reset_arm(RIGHT)
+    #yumi.reset_arm_cal(RIGHT)
+
+    #yumi.reset_arm(BOTH)
+    #yumi.plan_and_move_dual(yumi.create_pose_euler(0.5616441709329076, 0.09191685526372509, 0.15, 0, pi, pi), yumi.create_pose_euler(0.42175045517972104, -0.09619380898624302, 0.15, 0, pi, pi))
+    #yumi.plan_and_move_dual(yumi.create_pose_euler(0.5616441709329076, -0.06361511911466025, 0.15, 0, pi, pi), yumi.create_pose_euler(0.42175045517972104, 0.04412062566279922, 0.17, 0, pi, pi))
+    #yumi.plan_and_move_dual(yumi.create_pose_euler(0.5616441709329076, 0.09191685526372509, 0.15, 0, pi, pi), yumi.create_pose_euler(0.42175045517972104, -0.09619380898624302, 0.17, 0, pi, pi))
 
 
-    pose_ee = [0.5, -0.2, 0.15, 0.0, pi, pi]
-    grip_effort = -5.0
-    move_and_grasp(yumi.RIGHT, pose_ee, grip_effort)
-
-    pose_ee = [0.5, 0.2, 0.15, 0.0, pi, pi]
-    move_and_grasp(yumi.RIGHT, pose_ee, grip_effort)
-
-    yumi.reset_arm(RIGHT)
-    yumi.reset_arm_cal(RIGHT)
+    #yumi.plan_and_move_dual(yumi.create_pose_euler(0.5, 0.3, 0.15, 0, pi, pi), yumi.create_pose_euler(0.3, -0.3, 0.15, 0, pi, pi))
+    yumi.reset_arm_cal(BOTH)
     rospy.spin()
 
 
@@ -187,8 +188,8 @@ def tf_listener():
 		
 if __name__ == '__main__':
     try:
-        #gogo()
-	tf_listener()
+        gogo()
+	#tf_listener()
 
     	print "####################################     Program finished     ####################################"
     except rospy.ROSInterruptException:
