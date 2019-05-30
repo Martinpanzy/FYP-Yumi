@@ -18,7 +18,7 @@ LEFT = 2        #:ID of the left arm
 RIGHT = 1       #:ID of the right arm
 BOTH = 3        #:ID of both_arms
 xoff = -0.0205
-yoff = -0.028
+yoff = -0.023
 gripperoff = 0.136
 zoff = 0.17 - gripperoff #0.16268
 
@@ -64,27 +64,28 @@ def move_and_grasp(arm, pose_ee, grip_effort):
     else:
         print("The gripper effort values should be in the range [-20, 20]")
 
-
+#-----------------------------------------------------------------------------------------
 def gogo():
     rospy.init_node('yumi_moveit_demo')
     yumi.init_Moveit()
     yumi.reset_arm(RIGHT)
 
-    pose_ee = [0.47221014192621696, 0.045967072781602086, 0.25805372847756469, -0.156460582151150573, 3.4849516333754034, pi]
+    pose_ee = [0.4045711947559999, -0.021053634553673671, 0.17753247439694231, 0.38937750736992394, 3.9273010991115758, pi]
     grip_effort = 10.0
     move_and_grasp(yumi.RIGHT, pose_ee, grip_effort)
 
 
-    pose_ee = [0.50549305480859519, 0.040705357535096784, 0.16496005562266958, -0.156460582151150573, 3.4849516333754034, pi]
+    pose_ee = [0.45409940039557573, -0.00074346098038589881, 0.12803499465837531, 0.38937750736992394, 3.9273010991115758, pi]
     grip_effort = -5.0
     move_and_grasp(yumi.RIGHT, pose_ee, grip_effort)
 
-    pose_ee = [0.47221014192621696, 0.045967072781602086, 0.25805372847756469, -0.156460582151150573, 3.4849516333754034, pi]
+    pose_ee = [0.4045711947559999, -0.021053634553673671, 0.17753247439694231, 0.38937750736992394, 3.9273010991115758, pi]
     move_and_grasp(yumi.RIGHT, pose_ee, grip_effort)
 
     yumi.reset_arm(RIGHT)
     yumi.reset_arm_cal(RIGHT)
     rospy.spin()
+
 
 
 def run(pose_norm, pose):
@@ -154,11 +155,9 @@ def tf_listener():
 			b = np.arctan2((x - xn),(zn - z)) + pi
 
 			if(a>=0 and a<=pi and b>=pi and b<=1.5*pi):
-				#zoff = zoff - [zoff*(1 - np.sin(a)*np.cos(b - pi))]
-				#zoffset = zoff/(np.sin(a)*np.cos(b-pi))
 				zoffset = gripperoff*np.sin(a)*np.cos(b - pi) + zoff
-				yoffset = yoff - (zoff+gripperoff)*np.cos(a)
-				xoffset = xoff - (zoff+gripperoff)*np.sin(b - pi)
+				yoffset = yoff - (gripperoff)*np.cos(a)
+				xoffset = xoff - (gripperoff)*np.sin(b - pi)
 				a = pi/2 - a
 			else: 
 				a = 0.0
@@ -174,7 +173,7 @@ def tf_listener():
 		
 			print (x, y, z, xn, yn, zn, a, b)
 
-			'''
+			
 			if(np.isnan(a)==False and np.isnan(b)==False):
 				pose_norm = [xn, yn, zn, a, b, pi]
 				pose = [x, y, z, a, b, pi]
@@ -184,7 +183,7 @@ def tf_listener():
 					run(pose_norm, pose)
 			
 				#receive = True
-			'''
+			
 		
 if __name__ == '__main__':
     try:
