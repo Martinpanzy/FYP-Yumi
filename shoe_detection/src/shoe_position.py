@@ -108,8 +108,8 @@ class kinect_vision:
 		#mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
 		#mask = cv2.inRange(hsv, lower_green, upper_green)
 
-		mask = cv2.erode(mask, None, iterations=3)
-		mask = cv2.dilate(mask, None, iterations=3)
+		mask = cv2.erode(mask, None, iterations=2)
+		mask = cv2.dilate(mask, None, iterations=2)
 
 		(_, cnts, _) = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 		h, w, d = image.shape #480, 640, 3
