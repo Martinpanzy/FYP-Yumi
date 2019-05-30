@@ -57,7 +57,7 @@ class kinect_vision:
 		
 		p = pcl.PointCloud(np.array(pts, dtype = np.float32))
 
-		seg = p.make_segmenter_normals(ksearch=50)
+		seg = p.make_segmenter_normals(ksearch=20)
 		seg.set_optimize_coefficients(True)
 		seg.set_model_type(pcl.SACMODEL_NORMAL_PLANE)
 		seg.set_method_type(pcl.SAC_RANSAC)
@@ -71,8 +71,8 @@ class kinect_vision:
 		for i in range(0, len(indices)):
     			print (str(indices[i]) + ', x: '  + str(p[indices[i]][0]) + ', y : ' + str(p[indices[i]][1])  + ', z : ' + str(p[indices[i]][2]))
 		'''
-		if(np.isnan(coefficients[0])==False and np.isnan(coefficients[1])==False and np.isnan(coefficients[2])==False):
-			if len(self.coe) < 100:	
+		if(np.isnan(coefficients[0])==False and np.isnan(coefficients[1])==False and np.isnan(coefficients[2])==False and coefficients[0]>0):
+			if len(self.coe) < 50:	
 				self.coe = np.vstack((self.coe, [coefficients[0], coefficients[1], coefficients[2]]))
 			else:
 				#kmeans = KMeans(n_clusters = 5).fit(self.coe)
@@ -82,15 +82,14 @@ class kinect_vision:
 			
 				self.coe = np.mean(self.coe, axis=0)
 				ppp = [-0.1*self.coe[0], -0.1*self.coe[1], -0.1*self.coe[2]]
-				if(ppp[0]<=0):
-					#print(ppp, object_tf)
-					self._tfpub.sendTransform((ppp), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "norm_shoe_shole", 'shoe_hole')
+				#print('Model coefficients: ' + str(ppp[0]) + ' ' + str(ppp[1]) + ' ' + str(ppp[2]))
+				self._tfpub.sendTransform((ppp), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "norm_shoe_shole", 'shoe_hole')
 				self.coe = np.empty((0,3))
 
 	#find shoe bounding box------------------------------------------------------------------
 	def bbx_callback(self,bx):
 		for box in bx.bounding_boxes:
-			if(box.Class == 'shoe'):
+			if(box.Class == 'shoe' or box.Class == 'cell phone'):
 				self.xmin = box.xmin
 				self.ymin = box.ymin
 				self.xmax = box.xmax
@@ -109,8 +108,8 @@ class kinect_vision:
 		#mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
 		#mask = cv2.inRange(hsv, lower_green, upper_green)
 
-		mask = cv2.erode(mask, None, iterations=2)
-		mask = cv2.dilate(mask, None, iterations=2)
+		mask = cv2.erode(mask, None, iterations=3)
+		mask = cv2.dilate(mask, None, iterations=3)
 
 		(_, cnts, _) = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 		h, w, d = image.shape #480, 640, 3
@@ -123,7 +122,7 @@ class kinect_vision:
 			if M['m00'] > 0:
 				cx = int(M['m10']/M['m00'])
 				cy = int(M['m01']/M['m00'])
-			if area > 50 and area < 300:
+			if area > 100 and area < 350:
 			#if area > 70:
 				self.cx = cx + self.xmin
 				self.cy = cy + self.ymin
@@ -133,7 +132,7 @@ class kinect_vision:
 				cv2.drawContours(image, cnt, -1, (255, 255, 255),1)
 
 		cv2.namedWindow("window", 1)
-		cv2.imshow("window", image)
+		cv2.imshow("window", mask)
 		cv2.waitKey(1)
 #'''
 
