@@ -70,16 +70,16 @@ def gogo():
     yumi.init_Moveit()
     yumi.reset_arm(RIGHT)
 
-    pose_ee = [0.4045711947559999, -0.021053634553673671, 0.17753247439694231, 0.38937750736992394, 3.9273010991115758, pi]
+    pose_ee = [0.5, 0.2, 0.15, 0.0, pi, pi]
     grip_effort = 10.0
     move_and_grasp(yumi.RIGHT, pose_ee, grip_effort)
 
 
-    pose_ee = [0.45409940039557573, -0.00074346098038589881, 0.12803499465837531, 0.38937750736992394, 3.9273010991115758, pi]
+    pose_ee = [0.5, -0.2, 0.15, 0.0, pi, pi]
     grip_effort = -5.0
     move_and_grasp(yumi.RIGHT, pose_ee, grip_effort)
 
-    pose_ee = [0.4045711947559999, -0.021053634553673671, 0.17753247439694231, 0.38937750736992394, 3.9273010991115758, pi]
+    pose_ee = [0.5, 0.2, 0.15, 0.0, pi, pi]
     move_and_grasp(yumi.RIGHT, pose_ee, grip_effort)
 
     yumi.reset_arm(RIGHT)
@@ -187,8 +187,8 @@ def tf_listener():
 		
 if __name__ == '__main__':
     try:
-        gogo()
-	#tf_listener()
+        #gogo()
+	tf_listener()
 
     	print "####################################     Program finished     ####################################"
     except rospy.ROSInterruptException:
