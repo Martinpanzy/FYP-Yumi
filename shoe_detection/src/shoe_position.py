@@ -7,8 +7,6 @@ import ros_numpy
 import pcl
 from sensor_msgs.msg import Image, PointCloud2
 from darknet_ros_msgs.msg import BoundingBoxes
-from std_msgs.msg import Int32
-from rospy.numpy_msg import numpy_msg
 #from sklearn.cluster import KMeans
 
 #lower_blue = np.array([110, 50, 50])
@@ -38,7 +36,7 @@ class kinect_vision:
 
 	#get 6D pose of hole(x,y)-------------------------------------------------------------
 	def depth_callback(self,data):
-		
+		#adjustment waypoint----------------------------------------------------------
 		adr = pc2.read_points(data, field_names = ('x', 'y', 'z'), skip_nans = True, uvs = [(self.adr_x, self.adr_y)])
 		adrr = pc2.read_points(data, field_names = ('x', 'y', 'z'), skip_nans = True, uvs = [(self.adr_xx, self.adr_y)])
 		adl = pc2.read_points(data, field_names = ('x', 'y', 'z'), skip_nans = True, uvs = [(self.adl_x, self.adl_y)])
@@ -71,7 +69,7 @@ class kinect_vision:
 			#print object_tf
 			self._tfpub.sendTransform((object_tf), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "shoe_hole", 'camera_link')
 	
-		# 3D orientation--------------------------------------------------------------
+		#3D orientation----------------------------------------------------------------
 		pc = ros_numpy.numpify(data) #pc[480, 640]
 		pts = np.empty((0,3))
 		for cx in range(self.cx-4, self.cx+5):
@@ -123,13 +121,12 @@ class kinect_vision:
 				box_w = box.xmax - box.xmin
 				if (box_h >= 2* box_w):
 					self.adr_x = int(box.xmax + 30)
-					self.adr_xx = int(box.xmin)
-					self.adr_y = int(box.ymax - 0.25*box_h)
-					self.adl_x = int(box.xmin - 30)
-					self.adl_xx = int(box.xmax)
+					self.adr_xx = int(box.xmin + 0.2*box_w)
+					self.adr_y = int(box.ymax - 0.15*box_h)
+
+					self.adl_x = int(box.xmin - 20)
+					self.adl_xx = int(box.xmax - 0.2*box_w)
 					self.adl_y = int(box.ymin + 0.25*box_h)
-					#print self.adr_x, self.adr_y, self.adl_x, self.adl_y
-				#print self.xmin, self.ymin, self.xmax, self.ymax
 
 	#find shoe hole x,y position-------------------------------------------------------------
 	def image_callback(self,msg):
@@ -173,6 +170,7 @@ class kinect_vision:
 		cv2.waitKey(1)
 #'''
 
+#-----------------------------------------------------------------------------------------------------
 if __name__ == '__main__':
 	rospy.init_node("kinect_vision", anonymous=True)
 	follower=kinect_vision()

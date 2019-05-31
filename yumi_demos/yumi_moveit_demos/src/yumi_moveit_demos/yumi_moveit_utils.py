@@ -516,7 +516,7 @@ def reset_arm(arm):
         gripper_effort(LEFT, 0.0)
     elif (arm == BOTH):
         group_both.set_joint_value_target(safeJointPositionL + safeJointPositionR)
-	group_both.plan()
+		group_both.plan()
         group_both.go(wait=True)
         gripper_effort(LEFT, 15.0)
         gripper_effort(LEFT, 0.0)
@@ -557,45 +557,36 @@ def plan_and_move_dual(target_l, target_r):
     rospy.sleep(3)
 
 
-def plan_path_dual(points_l, points_r, planning_tries = 500):
-    global robot
+def reset_arm_home(arm):
+    safeJointPositionR = [1.2216231672267894, -1.3963481600421948, -1.7452802565685475, 0.4362939116971102, -0.5236164871404413, 0.6981578051173595, -3.141597301192861]
+    safeJointPositionL = [-1.221685609550029, -1.3962412251809146, 1.7453622267496307, 0.4363855625735596, 0.5236184702174738, 0.6981267334744801, -0.0000744845895562321]
+
+    #safeJointPositionR = [0.9688170487628563, -1.3705824888029625, -1.5658713136703462, 0.3259920519276778, -0.4228114273285618, 1.073713496098811, -3.214554735884634]
+    #safeJointPositionL = [-1.0082161152668732, -1.3750924296597176, 1.598219038396491, 0.36162332371064093, 0.44172305304760207, 0.9971737106500702, 0.059908225468350076]
     global group_l
     global group_r
+    global group_both
 
-    waypoints_l = []
-    waypoints_r = []
-    for point in points_l:
-        wpose = create_pose_euler(point[0], point[1], point[2], point[3], point[4], point[5])
-        waypoints_l.append(copy.deepcopy(wpose))
-	
-    for point in points_r:
-        wpose = create_pose_euler(point[0], point[1], point[2], point[3], point[4], point[5])
-        waypoints_r.append(copy.deepcopy(wpose))
-
-    group_both.set_start_state_to_current_state()
-
-    attempts = 0
-    fraction = 0.0
-
-    while fraction < 1.0 and attempts < planning_tries:
-        (plan_l, fraction_l) = group_l.compute_cartesian_path(waypoints_l, 0.01, 0.0, True)
-	(plan_r, fraction_r) = group_r.compute_cartesian_path(waypoints_r, 0.01, 0.0, True)
-
-        attempts += 1
-        if (fraction_l == 1.0 and fraction_r == 1.0):
-            plan_l = group_l.retime_trajectory(robot.get_current_state(), plan_l, 1.0)
-            return plan_l
-            plan_r = group_r.retime_trajectory(robot.get_current_state(), plan_r, 1.0)
-            return plan_r
-            group_l.execute(plan_l)
-            group_r.execute(plan_r)
-
-    if (fraction < 1.0):
-        rospy.logerr('Only managed to calculate ' + str(fraction*100) + '% of the path!')
-        raise Exception('Could not calculate full path, exiting')
-
-    return None
-
+    if (arm == RIGHT):
+        group_r.set_joint_value_target(safeJointPositionR)
+        group_r.plan()
+        group_r.go(wait=True)
+        gripper_effort(RIGHT, -15.0)
+        gripper_effort(RIGHT, 10.0)
+    elif (arm == LEFT):
+        group_l.set_joint_value_target(safeJointPositionL)
+        group_l.plan()
+        group_l.go(wait=True)
+        gripper_effort(LEFT, -15.0)
+        gripper_effort(LEFT, 10.0)
+    elif (arm == BOTH):
+        group_both.set_joint_value_target(safeJointPositionL + safeJointPositionR)
+	group_both.plan()
+        group_both.go(wait=True)
+        gripper_effort(LEFT, -15.0)
+        gripper_effort(LEFT, 10.0)
+        gripper_effort(RIGHT, -15.0)
+        gripper_effort(RIGHT, 10.0)
 
 
 def reset_arm_cal(arm):
@@ -619,11 +610,52 @@ def reset_arm_cal(arm):
         gripper_effort(LEFT, 0.0)
     elif (arm == BOTH):
         group_both.set_joint_value_target(safeJointPositionL + safeJointPositionR)
-	group_both.plan()
+		group_both.plan()
         group_both.go(wait=True)
         gripper_effort(LEFT, -15.0)
         gripper_effort(LEFT, 0.0)
         gripper_effort(RIGHT, -15.0)
         gripper_effort(RIGHT, 0.0)
+
+def close_grippers(arm):
+    """Closes the grippers.
+
+    Closes the grippers with an effort of 15 and then relaxes the effort to 0.
+
+    :param arm: The side to be closed (moveit_utils LEFT or RIGHT)
+    :type arm: int
+    :returns: Nothing
+    :rtype: None
+    """
+    yumi.gripper_effort(arm, 15.0)
+    yumi.gripper_effort(arm, 0.0)
+
+def open_grippers(arm):
+    """Opens the grippers.
+
+    Opens the grippers with an effort of -15 and then relaxes the effort to 0.
+
+    :param arm: The side to be opened (moveit_utils LEFT or RIGHT)
+    :type arm: int
+    :returns: Nothing
+    :rtype: None
+    """
+    yumi.gripper_effort(arm, -15.0)
+    yumi.gripper_effort(arm, 0.0)
+
+
+def move_and_grasp(arm, pose_ee, grip_effort):
+    try:
+        yumi.traverse_path([pose_ee], arm, 10)
+    except Exception:
+        if (arm == yumi.LEFT):
+            yumi.plan_and_move(yumi.group_l, yumi.create_pose_euler(pose_ee[0], pose_ee[1], pose_ee[2], pose_ee[3], pose_ee[4], pose_ee[5]))
+        elif (arm == yumi.RIGHT):
+            yumi.plan_and_move(yumi.group_r, yumi.create_pose_euler(pose_ee[0], pose_ee[1], pose_ee[2], pose_ee[3], pose_ee[4], pose_ee[5]))
+
+    if (grip_effort <= 20 and grip_effort >= -20):
+        yumi.gripper_effort(arm, grip_effort)
+    else:
+        print("The gripper effort values should be in the range [-20, 20]")
 
 rospy.sleep(1)

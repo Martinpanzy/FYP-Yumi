@@ -22,33 +22,6 @@ yoff = -0.023
 gripperoff = 0.136
 zoff = 0.17 - gripperoff #0.16268
 
-def close_grippers(arm):
-    """Closes the grippers.
-
-    Closes the grippers with an effort of 15 and then relaxes the effort to 0.
-
-    :param arm: The side to be closed (moveit_utils LEFT or RIGHT)
-    :type arm: int
-    :returns: Nothing
-    :rtype: None
-    """
-    yumi.gripper_effort(arm, 15.0)
-    yumi.gripper_effort(arm, 0.0)
-
-def open_grippers(arm):
-    """Opens the grippers.
-
-    Opens the grippers with an effort of -15 and then relaxes the effort to 0.
-
-    :param arm: The side to be opened (moveit_utils LEFT or RIGHT)
-    :type arm: int
-    :returns: Nothing
-    :rtype: None
-    """
-    yumi.gripper_effort(arm, -15.0)
-    yumi.gripper_effort(arm, 0.0)
-
-
 
 def move_and_grasp(arm, pose_ee, grip_effort):
     try:
@@ -68,22 +41,17 @@ def move_and_grasp(arm, pose_ee, grip_effort):
 def gogo():
     rospy.init_node('yumi_moveit_demo')
     yumi.init_Moveit()
+    #yumi.print_current_joint_states(yumi.RIGHT)
+    #yumi.print_current_joint_states(yumi.LEFT)
+    yumi.reset_arm_home(BOTH)
+    yumi.plan_and_move_dual(yumi.create_pose_euler(0.5133834823214563, 0.24797905921554042, 0.2, -pi/4, pi, pi), yumi.create_pose_euler(0.3424706232530676, -0.18748739397696912, 0.2, pi/4, pi, pi))
 
-    yumi.reset_arm(BOTH)
-    p_l = [0.5616441709329076, 0.29191685526372509, 0.17, 0, pi, pi]
-    p_r = [0.42175045517972104, -0.29619380898624302, 0.17, 0, pi, pi]
-    yumi.plan_path_dual([p_l], [p_r])
+    yumi.plan_and_move_dual(yumi.create_pose_euler(0.5133834823214563, 0.24797905921554042, 0.1, -pi/4, pi, pi), yumi.create_pose_euler(0.3424706232530676, -0.18748739397696912, 0.1, pi/4, pi, pi))
+    yumi.plan_and_move_dual(yumi.create_pose_euler(0.5133834823214563, 0.10721286835208456, 0.1, -pi/4, pi, pi), yumi.create_pose_euler(0.3424706232530676, -0.05191701573110484, 0.1, pi/4, pi, pi))
+    yumi.plan_and_move_dual(yumi.create_pose_euler(0.5133834823214563, 0.24797905921554042, 0.1, -pi/4, pi, pi), yumi.create_pose_euler(0.3424706232530676, -0.18748739397696912, 0.1, pi/4, pi, pi))
+    yumi.plan_and_move_dual(yumi.create_pose_euler(0.5133834823214563, 0.24797905921554042, 0.2, -pi/4, pi, pi), yumi.create_pose_euler(0.3424706232530676, -0.18748739397696912, 0.2, pi/4, pi, pi))
 
-    #yumi.reset_arm(RIGHT)
-    #yumi.reset_arm_cal(RIGHT)
-
-    #yumi.reset_arm(BOTH)
-    #yumi.plan_and_move_dual(yumi.create_pose_euler(0.5616441709329076, 0.09191685526372509, 0.15, 0, pi, pi), yumi.create_pose_euler(0.42175045517972104, -0.09619380898624302, 0.15, 0, pi, pi))
-    #yumi.plan_and_move_dual(yumi.create_pose_euler(0.5616441709329076, -0.06361511911466025, 0.15, 0, pi, pi), yumi.create_pose_euler(0.42175045517972104, 0.04412062566279922, 0.17, 0, pi, pi))
-    #yumi.plan_and_move_dual(yumi.create_pose_euler(0.5616441709329076, 0.09191685526372509, 0.15, 0, pi, pi), yumi.create_pose_euler(0.42175045517972104, -0.09619380898624302, 0.17, 0, pi, pi))
-
-
-    #yumi.plan_and_move_dual(yumi.create_pose_euler(0.5, 0.3, 0.15, 0, pi, pi), yumi.create_pose_euler(0.3, -0.3, 0.15, 0, pi, pi))
+    yumi.reset_arm_home(BOTH)
     yumi.reset_arm_cal(BOTH)
     rospy.spin()
 
