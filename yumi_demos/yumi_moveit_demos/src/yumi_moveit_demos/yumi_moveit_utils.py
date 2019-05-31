@@ -516,7 +516,7 @@ def reset_arm(arm):
         gripper_effort(LEFT, 0.0)
     elif (arm == BOTH):
         group_both.set_joint_value_target(safeJointPositionL + safeJointPositionR)
-		group_both.plan()
+        group_both.plan()
         group_both.go(wait=True)
         gripper_effort(LEFT, 15.0)
         gripper_effort(LEFT, 0.0)
@@ -581,7 +581,7 @@ def reset_arm_home(arm):
         gripper_effort(LEFT, 10.0)
     elif (arm == BOTH):
         group_both.set_joint_value_target(safeJointPositionL + safeJointPositionR)
-	group_both.plan()
+        group_both.plan()
         group_both.go(wait=True)
         gripper_effort(LEFT, -15.0)
         gripper_effort(LEFT, 10.0)
@@ -610,7 +610,7 @@ def reset_arm_cal(arm):
         gripper_effort(LEFT, 0.0)
     elif (arm == BOTH):
         group_both.set_joint_value_target(safeJointPositionL + safeJointPositionR)
-		group_both.plan()
+        group_both.plan()
         group_both.go(wait=True)
         gripper_effort(LEFT, -15.0)
         gripper_effort(LEFT, 0.0)

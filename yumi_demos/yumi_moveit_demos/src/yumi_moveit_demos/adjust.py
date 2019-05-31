@@ -28,6 +28,7 @@ zoff = 0.17 - gripperoff
 class adjust_shoe:
 	def __init__(self):
 		self._tfsub = tf.TransformListener()
+		self.need_adj = False
 		yumi.init_Moveit()
 		while not rospy.is_shutdown():
 			try:
@@ -35,28 +36,80 @@ class adjust_shoe:
 				(trans_adrr,_) = self._tfsub.lookupTransform('/yumi_body', '/adrr', rospy.Time(0))
 				(trans_adl,_) = self._tfsub.lookupTransform('/yumi_body', '/adl', rospy.Time(0))
 				(trans_adll,_) = self._tfsub.lookupTransform('/yumi_body', '/adll', rospy.Time(0))
+				self.need_adj = True
 			except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
 				continue
-			yoffset = yoff - (gripperoff)*np.cos(pi/4)
-			x_r = trans_adr[0] + xoff
-			y_r = trans_adr[1] + yoffset
-			y_rr = trans_adrr[1] + yoffset
+			if(self.need_adj == True):
+				yoffset = yoff - (gripperoff)*np.cos(pi/4)
+				x_r = trans_adr[0] + xoff
+				y_r = trans_adr[1] + yoffset
+				y_rr = trans_adrr[1] + yoffset
 
-			x_l = trans_adl[0] + xoff
-			y_l = trans_adl[1] - yoffset
-			y_ll = trans_adll[1] - yoffset
+				x_l = trans_adl[0] + xoff
+				y_l = trans_adl[1] - yoffset
+				y_ll = trans_adll[1] - yoffset
 		
-			#print (x_r, y_r, y_rr, x_l, y_l, y_ll)
+				#print (x_r, y_r, y_rr, x_l, y_l, y_ll)
 
-			yumi.reset_arm_home(BOTH)
-			yumi.plan_and_move_dual(yumi.create_pose_euler(x_l, y_l, 0.2, -pi/4, pi, pi), yumi.create_pose_euler(x_r, y_r, 0.2, pi/4, pi, pi))
-			yumi.plan_and_move_dual(yumi.create_pose_euler(x_l, y_l, 0.1, -pi/4, pi, pi), yumi.create_pose_euler(x_r, y_r, 0.1, pi/4, pi, pi))
-			yumi.plan_and_move_dual(yumi.create_pose_euler(x_l, y_ll, 0.1, -pi/4, pi, pi), yumi.create_pose_euler(x_r, y_rr, 0.1, pi/4, pi, pi))
-			yumi.plan_and_move_dual(yumi.create_pose_euler(x_l, y_l, 0.1, -pi/4, pi, pi), yumi.create_pose_euler(x_r, y_r, 0.1, pi/4, pi, pi))
-			yumi.plan_and_move_dual(yumi.create_pose_euler(x_l, y_l, 0.2, -pi/4, pi, pi), yumi.create_pose_euler(x_r, y_r, 0.2, pi/4, pi, pi))
-			yumi.reset_arm_home(BOTH)
-			yumi.reset_arm_cal(BOTH)
+				yumi.reset_arm_home(BOTH)
+				yumi.plan_and_move_dual(yumi.create_pose_euler(x_l, y_l, 0.2, -pi/4, pi, pi), yumi.create_pose_euler(x_r, y_r, 0.2, pi/4, pi, pi))
+				yumi.plan_and_move_dual(yumi.create_pose_euler(x_l, y_l, 0.1, -pi/4, pi, pi), yumi.create_pose_euler(x_r, y_r, 0.1, pi/4, pi, pi))
+				yumi.plan_and_move_dual(yumi.create_pose_euler(x_l, y_ll, 0.1, -pi/4, pi, pi), yumi.create_pose_euler(x_r, y_rr, 0.1, pi/4, pi, pi))
+				yumi.plan_and_move_dual(yumi.create_pose_euler(x_l, y_l, 0.1, -pi/4, pi, pi), yumi.create_pose_euler(x_r, y_r, 0.1, pi/4, pi, pi))
+				yumi.plan_and_move_dual(yumi.create_pose_euler(x_l, y_l, 0.2, -pi/4, pi, pi), yumi.create_pose_euler(x_r, y_r, 0.2, pi/4, pi, pi))
+				yumi.reset_arm_home(BOTH)
+				yumi.reset_arm_cal(BOTH)
+				self.need_adj = False
 
+			else:
+				print('22222222222222222')
+				try:
+					(trans,_) = listener.lookupTransform('/yumi_body', '/shoe_hole', rospy.Time(0))
+					(trans_norm,_) = listener.lookupTransform('/yumi_body', '/norm_shoe_shole', rospy.Time(0))
+				except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+					continue
+				x = trans[0]
+				y = trans[1]
+				z = trans[2]
+				xn = trans_norm[0]
+				yn = trans_norm[1]
+				zn = trans_norm[2]
+		
+				if(0<xn<=x and zn>=z>0):
+					a = np.arctan2((zn - z),(y - yn))
+					b = np.arctan2((x - xn),(zn - z)) + pi
+
+					if(a>=0 and a<=pi and b>=pi and b<=1.5*pi):
+						zoffset = gripperoff*np.sin(a)*np.cos(b - pi) + zoff
+						yoffset = yoff - (gripperoff)*np.cos(a)
+						xoffset = xoff - (gripperoff)*np.sin(b - pi)
+						a = pi/2 - a
+						#define pose
+					else: 
+						a = 0.0
+						b = pi		
+						#define pose
+			
+					x = x+xoffset
+					y = y+yoffset
+					z = z+zoffset
+					xn = xn+xoffset
+					yn = yn+yoffset
+					zn = zn+zoffset
+		
+					print (x, y, z, xn, yn, zn, a, b)
+
+					'''
+					if(np.isnan(a)==False and np.isnan(b)==False):
+						pose_norm = [xn, yn, zn, a, b, pi]
+						pose = [x, y, z, a, b, pi]
+
+						while receive == True:
+							receive = False
+							run(pose_norm, pose)
+			
+						#receive = True
+					'''
 
 
 if __name__ == '__main__':
