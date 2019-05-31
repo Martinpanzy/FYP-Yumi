@@ -35,32 +35,7 @@ class kinect_vision:
 
 	#get 6D pose of hole(x,y)-------------------------------------------------------------
 	def depth_callback(self,data):
-		#adjustment waypoint----------------------------------------------------------
-		if(self.need_adj == True):
-			adr = pc2.read_points(data, field_names = ('x', 'y', 'z'), skip_nans = True, uvs = [(self.adr_x, self.adr_y)])
-			adrr = pc2.read_points(data, field_names = ('x', 'y', 'z'), skip_nans = True, uvs = [(self.adr_xx, self.adr_y)])
-			adl = pc2.read_points(data, field_names = ('x', 'y', 'z'), skip_nans = True, uvs = [(self.adl_x, self.adl_y)])
-			adll = pc2.read_points(data, field_names = ('x', 'y', 'z'), skip_nans = True, uvs = [(self.adl_xx, self.adl_y)])
-			adr = list(adr)
-			adrr = list(adrr)
-			adl = list(adl)
-			adll = list(adll)
-			if len(adr) > 0 and len(adl) > 0 and len(adll) > 0 and len(adrr) > 0:
-				adr_x, adr_y, adr_z = adr[0]
-				adr_xx, adr_yy, adr_zz = adrr[0]
-				adl_x, adl_y, adl_z = adl[0]
-				adl_xx, adl_yy, adl_zz = adll[0]
-
-				adr = [adr_z, -adr_x, -adr_y]
-				adrr = [adr_zz, -adr_xx, -adr_yy]
-				adl = [adl_z, -adl_x, -adl_y]
-				adll = [adl_zz, -adl_xx, -adl_yy]
-				self._tfpub.sendTransform((adr), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "adr", 'camera_link')
-				self._tfpub.sendTransform((adrr), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "adrr", 'camera_link')
-				self._tfpub.sendTransform((adl), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "adl", 'camera_link')
-				self._tfpub.sendTransform((adll), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "adll", 'camera_link')
-		
-		else:
+		if(self.need_adj == False):
 			#z depth----------------------------------------------------------------------
 			data_out = pc2.read_points(data, field_names = ('x', 'y', 'z'), skip_nans = True, uvs = [(self.cx, self.cy)])
 			int_data = list(data_out)
@@ -110,6 +85,32 @@ class kinect_vision:
 					self._tfpub.sendTransform((ppp), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "norm_shoe_shole", 'shoe_hole')
 					self.coe = np.empty((0,3))
 
+		#adjustment waypoint----------------------------------------------------------
+		else:
+			adr = pc2.read_points(data, field_names = ('x', 'y', 'z'), skip_nans = True, uvs = [(self.adr_x, self.adr_y)])
+			adrr = pc2.read_points(data, field_names = ('x', 'y', 'z'), skip_nans = True, uvs = [(self.adr_xx, self.adr_y)])
+			adl = pc2.read_points(data, field_names = ('x', 'y', 'z'), skip_nans = True, uvs = [(self.adl_x, self.adl_y)])
+			adll = pc2.read_points(data, field_names = ('x', 'y', 'z'), skip_nans = True, uvs = [(self.adl_xx, self.adl_y)])
+			adr = list(adr)
+			adrr = list(adrr)
+			adl = list(adl)
+			adll = list(adll)
+			if len(adr) > 0 and len(adl) > 0 and len(adll) > 0 and len(adrr) > 0:
+				adr_x, adr_y, adr_z = adr[0]
+				adr_xx, adr_yy, adr_zz = adrr[0]
+				adl_x, adl_y, adl_z = adl[0]
+				adl_xx, adl_yy, adl_zz = adll[0]
+
+				adr = [adr_z, -adr_x, -adr_y]
+				adrr = [adr_zz, -adr_xx, -adr_yy]
+				adl = [adl_z, -adl_x, -adl_y]
+				adll = [adl_zz, -adl_xx, -adl_yy]
+				self._tfpub.sendTransform((adr), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "adr", 'camera_link')
+				self._tfpub.sendTransform((adrr), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "adrr", 'camera_link')
+				self._tfpub.sendTransform((adl), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "adl", 'camera_link')
+				self._tfpub.sendTransform((adll), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "adll", 'camera_link')
+				self.need_adj = False
+
 	#find shoe bounding box------------------------------------------------------------------
 	def bbx_callback(self,bx):
 		for box in bx.bounding_boxes:
@@ -122,11 +123,11 @@ class kinect_vision:
 				box_w = box.xmax - box.xmin
 				if (box_h >= 2* box_w):
 					self.adr_x = int(box.xmax + 30)
-					self.adr_xx = int(box.xmin + 0.2*box_w)
+					self.adr_xx = int(box.xmin + 0.15*box_w)
 					self.adr_y = int(box.ymax - 0.15*box_h)
 
 					self.adl_x = int(box.xmin - 20)
-					self.adl_xx = int(box.xmax - 0.2*box_w)
+					self.adl_xx = int(box.xmax - 0.15*box_w)
 					self.adl_y = int(box.ymin + 0.25*box_h)
 					self.need_adj = True
 

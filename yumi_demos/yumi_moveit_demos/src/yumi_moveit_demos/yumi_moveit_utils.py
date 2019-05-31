@@ -645,16 +645,18 @@ def open_grippers(arm):
 
 
 def move_and_grasp(arm, pose_ee, grip_effort):
+    global group_l
+    global group_r
     try:
-        yumi.traverse_path([pose_ee], arm, 10)
+        traverse_path([pose_ee], arm, 10)
     except Exception:
-        if (arm == yumi.LEFT):
-            yumi.plan_and_move(yumi.group_l, yumi.create_pose_euler(pose_ee[0], pose_ee[1], pose_ee[2], pose_ee[3], pose_ee[4], pose_ee[5]))
-        elif (arm == yumi.RIGHT):
-            yumi.plan_and_move(yumi.group_r, yumi.create_pose_euler(pose_ee[0], pose_ee[1], pose_ee[2], pose_ee[3], pose_ee[4], pose_ee[5]))
+        if (arm == LEFT):
+            plan_and_move(group_l, create_pose_euler(pose_ee[0], pose_ee[1], pose_ee[2], pose_ee[3], pose_ee[4], pose_ee[5]))
+        elif (arm == RIGHT):
+            plan_and_move(group_r, create_pose_euler(pose_ee[0], pose_ee[1], pose_ee[2], pose_ee[3], pose_ee[4], pose_ee[5]))
 
     if (grip_effort <= 20 and grip_effort >= -20):
-        yumi.gripper_effort(arm, grip_effort)
+        gripper_effort(arm, grip_effort)
     else:
         print("The gripper effort values should be in the range [-20, 20]")
 

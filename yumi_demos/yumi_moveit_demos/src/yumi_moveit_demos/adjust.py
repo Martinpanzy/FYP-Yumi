@@ -13,6 +13,8 @@ import numpy as np
 from math import pi
 from std_msgs.msg import Int32
 from rospy.numpy_msg import numpy_msg
+import signal
+from concurrent.futures import TimeoutError
 
 import tf
 
@@ -26,10 +28,17 @@ zoff = 0.17 - gripperoff
 
 
 class adjust_shoe:
+	def handler(self, signum, frame):
+		raise TimeoutError
+	def done():
+		print('------------Finished-----------')
+
 	def __init__(self):
 		self._tfsub = tf.TransformListener()
 		self.need_adj = False
 		yumi.init_Moveit()
+		signal.signal(signal.SIGALRM, self.handler)
+		signal.alarm(3)
 		while not rospy.is_shutdown():
 			try:
 				(trans_adr,_) = self._tfsub.lookupTransform('/yumi_body', '/adr', rospy.Time(0))
@@ -37,8 +46,11 @@ class adjust_shoe:
 				(trans_adl,_) = self._tfsub.lookupTransform('/yumi_body', '/adl', rospy.Time(0))
 				(trans_adll,_) = self._tfsub.lookupTransform('/yumi_body', '/adll', rospy.Time(0))
 				self.need_adj = True
-			except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
-				continue
+			except (TimeoutError, tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+				pass
+			finally:
+				signal.signal(signal.SIGALRM, signal.SIG_IGN)
+
 			if(self.need_adj == True):
 				yoffset = yoff - (gripperoff)*np.cos(pi/4)
 				x_r = trans_adr[0] + xoff
@@ -56,16 +68,16 @@ class adjust_shoe:
 				yumi.plan_and_move_dual(yumi.create_pose_euler(x_l, y_l, 0.1, -pi/4, pi, pi), yumi.create_pose_euler(x_r, y_r, 0.1, pi/4, pi, pi))
 				yumi.plan_and_move_dual(yumi.create_pose_euler(x_l, y_ll, 0.1, -pi/4, pi, pi), yumi.create_pose_euler(x_r, y_rr, 0.1, pi/4, pi, pi))
 				yumi.plan_and_move_dual(yumi.create_pose_euler(x_l, y_l, 0.1, -pi/4, pi, pi), yumi.create_pose_euler(x_r, y_r, 0.1, pi/4, pi, pi))
-				yumi.plan_and_move_dual(yumi.create_pose_euler(x_l, y_l, 0.2, -pi/4, pi, pi), yumi.create_pose_euler(x_r, y_r, 0.2, pi/4, pi, pi))
+				yumi.plan_and_move_dual(yumi.create_pose_euler(x_l, y_l, 0.25, -pi/4, pi, pi), yumi.create_pose_euler(x_r, y_r, 0.25, pi/4, pi, pi))
 				yumi.reset_arm_home(BOTH)
 				yumi.reset_arm_cal(BOTH)
 				self.need_adj = False
+				rospy.sleep(3)
 
 			else:
-				print('22222222222222222')
 				try:
-					(trans,_) = listener.lookupTransform('/yumi_body', '/shoe_hole', rospy.Time(0))
-					(trans_norm,_) = listener.lookupTransform('/yumi_body', '/norm_shoe_shole', rospy.Time(0))
+					(trans,_) = self._tfsub.lookupTransform('/yumi_body', '/shoe_hole', rospy.Time(0))
+					(trans_norm,_) = self._tfsub.lookupTransform('/yumi_body', '/norm_shoe_shole', rospy.Time(0))
 				except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
 					continue
 				x = trans[0]
@@ -84,33 +96,26 @@ class adjust_shoe:
 						yoffset = yoff - (gripperoff)*np.cos(a)
 						xoffset = xoff - (gripperoff)*np.sin(b - pi)
 						a = pi/2 - a
-						#define pose
-					else: 
-						a = 0.0
-						b = pi		
-						#define pose
-			
-					x = x+xoffset
-					y = y+yoffset
-					z = z+zoffset
-					xn = xn+xoffset
-					yn = yn+yoffset
-					zn = zn+zoffset
-		
-					print (x, y, z, xn, yn, zn, a, b)
+						#set up 6D pose----------------
+						x = x+xoffset
+						y = y+yoffset
+						z = z+zoffset
+						xn = xn+xoffset
+						yn = yn+yoffset
+						zn = zn+zoffset
+						print (x, y, z, xn, yn, zn, a, b)
 
-					'''
-					if(np.isnan(a)==False and np.isnan(b)==False):
-						pose_norm = [xn, yn, zn, a, b, pi]
-						pose = [x, y, z, a, b, pi]
-
-						while receive == True:
-							receive = False
-							run(pose_norm, pose)
-			
-						#receive = True
-					'''
-
+						if(np.isnan(a)==False and np.isnan(b)==False):
+							pose_norm = [xn, yn, zn, a, b, pi]
+							pose = [x, y, z, a, b, pi]
+							yumi.reset_arm(RIGHT)
+							yumi.move_and_grasp(yumi.RIGHT, pose_norm, 10.0)
+							yumi.move_and_grasp(yumi.RIGHT, pose, -10.0)
+							yumi.move_and_grasp(yumi.RIGHT, pose_norm, -10.0)
+							yumi.reset_arm(RIGHT)
+							yumi.reset_arm_cal(RIGHT)
+							rospy.on_shutdown(done)
+					
 
 if __name__ == '__main__':
 	rospy.init_node("adjust_shoe", anonymous=True)
