@@ -36,6 +36,7 @@ class kinect_vision:
 	#get 6D pose of hole(x,y)-------------------------------------------------------------
 	def depth_callback(self,data):
 		if(self.need_adj == False):
+			print('centroid')
 			#z depth----------------------------------------------------------------------
 			data_out = pc2.read_points(data, field_names = ('x', 'y', 'z'), skip_nans = True, uvs = [(self.cx, self.cy)])
 			int_data = list(data_out)
@@ -87,6 +88,7 @@ class kinect_vision:
 
 		#adjustment waypoint----------------------------------------------------------
 		else:
+			print('adjust')
 			adr = pc2.read_points(data, field_names = ('x', 'y', 'z'), skip_nans = True, uvs = [(self.adr_x, self.adr_y)])
 			adrr = pc2.read_points(data, field_names = ('x', 'y', 'z'), skip_nans = True, uvs = [(self.adr_xx, self.adr_y)])
 			adl = pc2.read_points(data, field_names = ('x', 'y', 'z'), skip_nans = True, uvs = [(self.adl_x, self.adl_y)])
@@ -136,6 +138,9 @@ class kinect_vision:
 		image = self.bridge.imgmsg_to_cv2(msg,'bgr8')
 		image = image[self.ymin:self.ymax, self.xmin:self.xmax]
 		blurred = cv2.GaussianBlur(image, (11, 11), 0)
+		#blurred = cv2.medianBlur(image, 11)
+		#blurred = cv2.bilateralFilter(image, 11, 75, 75)
+		#blurred = cv2.boxFilter(image, -1, (5,5))
 		hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
 
 		mask = cv2.inRange(hsv, lower_blue, upper_blue)
@@ -165,11 +170,11 @@ class kinect_vision:
 				cv2.putText(image, "({}, {})".format(int(cx), int(cy)), (int(cx-5), int(cy+15)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
 				cv2.drawContours(image, cnt, -1, (255, 255, 255),1)
 
-		cv2.namedWindow("mask", 1)
-		cv2.imshow("mask", mask)
-		cv2.waitKey(1)
 		cv2.namedWindow("image", 1)
 		cv2.imshow("image", image)
+		cv2.waitKey(1)
+		cv2.namedWindow("mask", 1)
+		cv2.imshow("mask", mask)
 		cv2.waitKey(1)
 #'''
 
