@@ -97,6 +97,7 @@ class kinect_vision:
 			adrr = list(adrr)
 			adl = list(adl)
 			adll = list(adll)
+			self.need_adj = False
 			if len(adr) > 0 and len(adl) > 0 and len(adll) > 0 and len(adrr) > 0:
 				adr_x, adr_y, adr_z = adr[0]
 				adr_xx, adr_yy, adr_zz = adrr[0]
@@ -111,7 +112,6 @@ class kinect_vision:
 				self._tfpub.sendTransform((adrr), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "adrr", 'camera_link')
 				self._tfpub.sendTransform((adl), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "adl", 'camera_link')
 				self._tfpub.sendTransform((adll), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "adll", 'camera_link')
-				self.need_adj = False
 
 	#find shoe bounding box------------------------------------------------------------------
 	def bbx_callback(self,bx):
@@ -148,10 +148,10 @@ class kinect_vision:
 		#mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
 		#mask = cv2.inRange(hsv, lower_green, upper_green)
 
-		mask = cv2.erode(mask, None, iterations=2)
-		mask = cv2.dilate(mask, None, iterations=2)
+		mask1 = cv2.erode(mask, None, iterations=2)
+		mask2 = cv2.dilate(mask1, None, iterations=2)
 
-		(_, cnts, _) = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+		(_, cnts, _) = cv2.findContours(mask2.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 		h, w, d = image.shape #480, 640, 3
 
 		if len(cnts) > 0:
@@ -165,18 +165,19 @@ class kinect_vision:
 			if area > 100 and area < 350:
 				self.cx = cx + self.xmin
 				self.cy = cy + self.ymin
-#'''
+'''
 				cv2.circle(image, (cx, cy), 10, (0,0,0), -1)
 				cv2.putText(image, "({}, {})".format(int(cx), int(cy)), (int(cx-5), int(cy+15)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
 				cv2.drawContours(image, cnt, -1, (255, 255, 255),1)
 
-		cv2.namedWindow("image", 1)
 		cv2.imshow("image", image)
-		cv2.waitKey(1)
-		cv2.namedWindow("mask", 1)
+		cv2.imshow("blurred", blurred)
+		cv2.imshow("hsv", hsv)
 		cv2.imshow("mask", mask)
+		cv2.imshow("mask1", mask1)
+		cv2.imshow("mask2", mask2)
 		cv2.waitKey(1)
-#'''
+'''
 
 #-----------------------------------------------------------------------------------------------------
 if __name__ == '__main__':
