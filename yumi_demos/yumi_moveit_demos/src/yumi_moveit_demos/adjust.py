@@ -11,8 +11,6 @@ import geometry_msgs.msg
 from std_srvs.srv import Empty
 import numpy as np
 from math import pi
-from std_msgs.msg import Int32
-from rospy.numpy_msg import numpy_msg
 import signal
 from concurrent.futures import TimeoutError
 
