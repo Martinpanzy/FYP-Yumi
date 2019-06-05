@@ -165,7 +165,7 @@ class kinect_vision:
 			if area > 100 and area < 350:
 				self.cx = cx + self.xmin
 				self.cy = cy + self.ymin
-'''
+#'''
 				cv2.circle(image, (cx, cy), 10, (0,0,0), -1)
 				cv2.putText(image, "({}, {})".format(int(cx), int(cy)), (int(cx-5), int(cy+15)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
 				cv2.drawContours(image, cnt, -1, (255, 255, 255),1)
@@ -177,7 +177,7 @@ class kinect_vision:
 		cv2.imshow("mask1", mask1)
 		cv2.imshow("mask2", mask2)
 		cv2.waitKey(1)
-'''
+#'''
 
 #-----------------------------------------------------------------------------------------------------
 if __name__ == '__main__':
