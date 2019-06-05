@@ -77,7 +77,7 @@ class adjust_shoe:
 			else:
 				try:
 					(trans,_) = self._tfsub.lookupTransform('/yumi_body', '/shoe_hole', rospy.Time(0))
-					(trans_norm,_) = self._tfsub.lookupTransform('/yumi_body', '/norm_shoe_shole', rospy.Time(0))
+					(trans_norm,_) = self._tfsub.lookupTransform('/yumi_body', '/norm_shoe_hole', rospy.Time(0))
 				except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
 					continue
 				x = trans[0]

@@ -109,7 +109,7 @@ def tf_listener():
 	while not rospy.is_shutdown():
 		try:
 			(trans,rot) = listener.lookupTransform('/yumi_body', '/shoe_hole', rospy.Time(0))
-			(trans_norm,rot_norm) = listener.lookupTransform('/yumi_body', '/norm_shoe_shole', rospy.Time(0))
+			(trans_norm,rot_norm) = listener.lookupTransform('/yumi_body', '/norm_shoe_hole', rospy.Time(0))
 		except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
 			continue
 		x = trans[0]

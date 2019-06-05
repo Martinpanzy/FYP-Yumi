@@ -83,7 +83,7 @@ class kinect_vision:
 		
 					self.coe = np.mean(self.coe, axis=0)
 					ppp = [-0.1*self.coe[0], -0.1*self.coe[1], -0.1*self.coe[2]]
-					self._tfpub.sendTransform((ppp), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "norm_shoe_shole", 'shoe_hole')
+					self._tfpub.sendTransform((ppp), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "norm_shoe_hole", 'shoe_hole')
 					self.coe = np.empty((0,3))
 
 		#adjustment waypoint----------------------------------------------------------
