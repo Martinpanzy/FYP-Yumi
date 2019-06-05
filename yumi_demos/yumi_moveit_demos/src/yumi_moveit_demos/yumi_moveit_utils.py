@@ -627,8 +627,8 @@ def close_grippers(arm):
     :returns: Nothing
     :rtype: None
     """
-    yumi.gripper_effort(arm, 15.0)
-    yumi.gripper_effort(arm, 0.0)
+    gripper_effort(arm, 15.0)
+    gripper_effort(arm, 0.0)
 
 def open_grippers(arm):
     """Opens the grippers.
@@ -640,8 +640,8 @@ def open_grippers(arm):
     :returns: Nothing
     :rtype: None
     """
-    yumi.gripper_effort(arm, -15.0)
-    yumi.gripper_effort(arm, 0.0)
+    gripper_effort(arm, -15.0)
+    gripper_effort(arm, 0.0)
 
 
 def move_and_grasp(arm, pose_ee, grip_effort):
