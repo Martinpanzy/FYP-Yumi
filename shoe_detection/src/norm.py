@@ -87,6 +87,8 @@ class kinect_vision:
 					self.coe = np.mean(self.coe, axis=0)
 					ppp = [-0.1*self.coe[0], -0.1*self.coe[1], -0.1*self.coe[2]]
 					self._tfpub.sendTransform((ppp), tf.transformations.quaternion_from_euler(0, 0, pi), rospy.Time.now(), "norm_shoe_hole", 'shoe_hole')
+					pick = [0.02*self.coe[0], 0.02*self.coe[1], 0.02*self.coe[2]]
+					self._tfpub.sendTransform((pick), tf.transformations.quaternion_from_euler(0, 0, pi), rospy.Time.now(), "pick", 'shoe_hole')
 					self.coe = np.empty((0,3))
 
 		#adjustment waypoint----------------------------------------------------------
@@ -119,7 +121,7 @@ class kinect_vision:
 	#find shoe bounding box------------------------------------------------------------------
 	def bbx_callback(self,bx):
 		for box in bx.bounding_boxes:
-			if(box.Class == 'shoe' or box.Class == 'cell phone'):
+			if(box.Class == 'footwear'):
 				self.xmin = box.xmin
 				self.ymin = box.ymin
 				self.xmax = box.xmax
@@ -148,8 +150,8 @@ class kinect_vision:
 
 		mask = cv2.inRange(hsv, lower_blue, upper_blue)
 
-		mask1 = cv2.erode(mask, None, iterations=2)
-		mask2 = cv2.dilate(mask1, None, iterations=2)
+		mask1 = cv2.erode(mask, None, iterations=1)
+		mask2 = cv2.dilate(mask1, None, iterations=1)
 
 		(_, cnts, _) = cv2.findContours(mask2.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 		h, w, d = image.shape #480, 640, 3
@@ -168,8 +170,8 @@ class kinect_vision:
 				self.cy = cy + self.ymin
 		
 #'''
-				cv2.circle(image, (cx, cy), 10, (0,0,0), -1)
-				cv2.putText(image, "({}, {})".format(int(cx), int(cy)), (int(cx-5), int(cy+15)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+				cv2.circle(image, (cx, cy), 1, (0,0,0), -1)
+				cv2.putText(image, "({}, {})".format(int(cx), int(cy)), (int(cx-5), int(cy+15)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
 				cv2.drawContours(image, cnt, -1, (255, 255, 255),1)
 
 		cv2.imshow("image", image)
@@ -177,7 +179,7 @@ class kinect_vision:
 		#cv2.imshow("hsv", hsv)
 		#cv2.imshow("mask", mask)
 		#cv2.imshow("mask1", mask1)
-		cv2.imshow("mask2", mask2)
+		#cv2.imshow("mask2", mask2)
 		cv2.waitKey(1)
 #'''
 
