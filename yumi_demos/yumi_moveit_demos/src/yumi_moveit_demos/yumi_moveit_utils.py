@@ -507,7 +507,7 @@ def reset_arm(arm):
         group_r.plan()
         group_r.go(wait=True)
         gripper_effort(RIGHT, 15.0)
-        gripper_effort(RIGHT, 0.0)
+        #gripper_effort(RIGHT, 0.0)
     elif (arm == LEFT):
         group_l.set_joint_value_target(safeJointPositionL)
         group_l.plan()

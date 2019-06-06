@@ -19,10 +19,12 @@ import tf
 LEFT = 2        #:ID of the left arm
 RIGHT = 1       #:ID of the right arm
 BOTH = 3        #:ID of both_arms
-xoff = -0.0205
-yoff = -0.023
+#xoff = -0.0205
+#yoff = -0.023
+xoff = -0.03
+yoff = -0.032
 gripperoff = 0.136
-zoff = 0.17 - gripperoff
+zoff = 0.18 - gripperoff
 
 
 class adjust_shoe:

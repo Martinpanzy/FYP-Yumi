@@ -19,8 +19,8 @@ import tf
 LEFT = 2        #:ID of the left arm
 RIGHT = 1       #:ID of the right arm
 BOTH = 3        #:ID of both_arms
-xoff = -0.0205
-yoff = -0.023
+xoff = -0.03
+yoff = -0.034
 gripperoff = 0.136
 zoff = 0.17 - gripperoff
 
@@ -61,17 +61,23 @@ def gogo():
 def gogogo():
 	rospy.init_node('yumi_moveit_demo')
 	yumi.init_Moveit()
-	#pose_norm = [0.5093330806067092, 0.05012054501103958, 0.2241346252348789, 0, pi, pi]
-	pose_norm = [0.5626958995228342, 0.03252854656081904, 0.24328707196060997, 0, pi, pi]
-	pose = [0.5626958995228342, 0.03252854656081904, 0.17328707196060997, 0, pi, pi]
-	yumi.reset_arm(RIGHT)
-	yumi.move_and_grasp(yumi.RIGHT, pose_norm, 10.0)
-	yumi.move_and_grasp(yumi.RIGHT, pose, -10.0)
-	yumi.move_and_grasp(yumi.RIGHT, pose_norm, -10.0)
-	yumi.reset_arm(RIGHT)
-	yumi.reset_arm_cal(RIGHT)
+	#pose_norm = [0.5531993228901315, -0.035960980038478474, 0.2560585518663725, 0, pi, pi]
+	#pose = [0.5531993228901315, -0.035960980038478474, 0.1760585518663725, 0, pi, pi]
+	#yumi.reset_arm(RIGHT)
+	#yumi.move_and_grasp(yumi.RIGHT, pose_norm, 10.0)
+	#yumi.move_and_grasp(yumi.RIGHT, pose, 10.0)
+	#yumi.move_and_grasp(yumi.RIGHT, pose_norm, -10.0)
+	#yumi.reset_arm(RIGHT)
+	#yumi.reset_arm_cal(RIGHT)
+	pose_norm = [0.4, 0.1, 0.15, 0, pi, 0.90749030914100703]
+	#pose = [0.4, 0.1, 0.15, 0, pi, 0]
+	yumi.reset_arm_home(LEFT)
+	yumi.move_and_grasp(yumi.LEFT, pose_norm, -10.0)
+	#yumi.move_and_grasp(yumi.LEFT, pose, 10.0)
+	#yumi.move_and_grasp(yumi.LEFT, pose_norm, 10.0)
+	yumi.reset_arm(LEFT)
+	yumi.reset_arm_cal(LEFT)
 	rospy.spin()
-	#rospy.on_shutdown(done)
 
 def run(pose_norm, pose):
     """Starts the node
@@ -125,16 +131,26 @@ def tf_listener():
 	while not rospy.is_shutdown():
 		try:
 			(trans,rot) = listener.lookupTransform('/yumi_body', '/shoe_hole', rospy.Time(0))
+			(trans_pick,rot) = listener.lookupTransform('/yumi_body', '/pick', rospy.Time(0))
 			(trans_norm,rot_norm) = listener.lookupTransform('/yumi_body', '/norm_shoe_hole', rospy.Time(0))
 		except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
 			continue
 		x = trans[0] + xoff
 		y = trans[1] + yoff
 		z = trans[2] + zof
-		xn = trans_norm[0] + xoff
-		yn = trans_norm[1] + yoff
-		zn = trans_norm[2] + zof
-		print (x, y, z)
+		xp = trans_pick[0] + xoff
+		yp = trans_pick[1] + yoff
+		zp = trans_pick[2] + zof
+		#xn = trans_norm[0] + xoff
+		#yn = trans_norm[1] + yoff
+		#zn = trans_norm[2] + zof
+		#print (x, y, z, xp, yp, zp)
+
+		if(0<x<xp):
+			c = np.arctan2((yp - y),(xp - x))
+			if (0<=c<=pi or -pi<=c<0):
+				print (x, y, z, xp, yp, zp, 0.5*pi+c)
+			
 		'''
 		if(0<xn<=x and zn>=z>0):
 			a = np.arctan2((zn - z),(y - yn))
