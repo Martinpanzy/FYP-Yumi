@@ -19,12 +19,12 @@ import tf
 LEFT = 2        #:ID of the left arm
 RIGHT = 1       #:ID of the right arm
 BOTH = 3        #:ID of both_arms
-xoff = -0.03
-yoff = -0.034
+xoff = -0.025
+yoff = 0
 gripperoff = 0.136
 zoff = 0.17 - gripperoff
 
-zof = 0.17
+zof = 0.15
 
 def move_and_grasp(arm, pose_ee, grip_effort):
     try:
@@ -57,27 +57,6 @@ def gogo():
     yumi.reset_arm_home(BOTH)
     yumi.reset_arm_cal(BOTH)
     rospy.spin()
-
-def gogogo():
-	rospy.init_node('yumi_moveit_demo')
-	yumi.init_Moveit()
-	#pose_norm = [0.5531993228901315, -0.035960980038478474, 0.2560585518663725, 0, pi, pi]
-	#pose = [0.5531993228901315, -0.035960980038478474, 0.1760585518663725, 0, pi, pi]
-	#yumi.reset_arm(RIGHT)
-	#yumi.move_and_grasp(yumi.RIGHT, pose_norm, 10.0)
-	#yumi.move_and_grasp(yumi.RIGHT, pose, 10.0)
-	#yumi.move_and_grasp(yumi.RIGHT, pose_norm, -10.0)
-	#yumi.reset_arm(RIGHT)
-	#yumi.reset_arm_cal(RIGHT)
-	pose_norm = [0.4, 0.1, 0.15, 0, pi, 0.90749030914100703]
-	#pose = [0.4, 0.1, 0.15, 0, pi, 0]
-	yumi.reset_arm_home(LEFT)
-	yumi.move_and_grasp(yumi.LEFT, pose_norm, -10.0)
-	#yumi.move_and_grasp(yumi.LEFT, pose, 10.0)
-	#yumi.move_and_grasp(yumi.LEFT, pose_norm, 10.0)
-	yumi.reset_arm(LEFT)
-	yumi.reset_arm_cal(LEFT)
-	rospy.spin()
 
 def run(pose_norm, pose):
     """Starts the node
@@ -149,7 +128,7 @@ def tf_listener():
 		if(0<x<xp):
 			c = np.arctan2((yp - y),(xp - x))
 			if (0<=c<=pi or -pi<=c<0):
-				print (x, y, z, xp, yp, zp, 0.5*pi+c)
+				print (xp, yp, zp, 0.5*pi+c-0.26)
 			
 		'''
 		if(0<xn<=x and zn>=z>0):
@@ -185,7 +164,29 @@ def tf_listener():
 					run(pose_norm, pose)
 			'''
 				#receive = True
-			
+def gogogo():
+	rospy.init_node('yumi_moveit_demo')
+	yumi.init_Moveit()
+	'''
+	pose_norm = [0.5866301502044863, 0.03300362835388669, 0.24680494473724038, 0, pi, pi]
+	pose = [0.5866301502044863, 0.03300362835388669, 0.18680494473724038, 0, pi, pi]
+	yumi.reset_arm(RIGHT)
+	yumi.move_and_grasp(yumi.RIGHT, pose_norm, 10.0)
+	yumi.move_and_grasp(yumi.RIGHT, pose, 10.0)
+	yumi.move_and_grasp(yumi.RIGHT, pose_norm, -10.0)
+	yumi.reset_arm(RIGHT)
+	yumi.reset_arm_cal(RIGHT)
+	'''
+	pose_norm = [0.6034419544962922, 0.04942187099026171, 0.24573289236051445, 0, pi, 1.2374481224438287]
+	pose = [0.6034419544962922, 0.04942187099026171, 0.17573289236051445, 0, pi, 1.2374481224438287]
+	yumi.reset_arm_home(LEFT)
+	yumi.move_and_grasp(yumi.LEFT, pose_norm, -10.0)
+	yumi.move_and_grasp(yumi.LEFT, pose, 10.0)
+	yumi.move_and_grasp(yumi.LEFT, pose_norm, 10.0)
+	yumi.reset_arm(LEFT)
+	yumi.reset_arm_cal(LEFT)
+	rospy.spin()
+
 		
 if __name__ == '__main__':
     try:
