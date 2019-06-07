@@ -16,11 +16,11 @@ Install MoveIt!
 ## Run shoe lacing
 ```
 roscore
-roslaunch openni2_launch openni2.launch
+roslaunch zed_wrapper zedm.launch --or-- roslaunch openni2_launch openni2.launch
 roslaunch yumi_moveit_config yumi.launch 
 roslaunch darknet_ros darknet_ros.launch 
-rosrun shoe_detection shoe_position.py
-rosrun yumi_moveit_demos main.py 
+rosrun shoe_detection shoe_zed.py --or-- rosrun shoe_detection norm.py
+rosrun yumi_moveit_demos adjust.py 
 ```
 
 ## Run YuMi simulation
