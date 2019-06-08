@@ -3,7 +3,7 @@
 ## Dependencies
 Install ROS kinetic
 
-Install openni
+Install openni for ASUS or Install zed-ros-wrapper for Zed mini
 
 Install imperial college yumi ...
 
