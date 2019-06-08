@@ -105,7 +105,7 @@ class adjust_shoe:
 					b = np.arctan2((x - xn),(zn - z))
 					c = np.arctan2((yp - y),(xp - x))
 
-					if(a>=-0.5*pi and a<=0.5*pi and b>=0 and b<=0.5*pi and (0<=c<=pi or -pi<=c<0)):
+					if(-0.5*pi<=a<=0.5*pi and 0<=b<=0.5*pi and -0.5<=c<=0.5*pi):
 						zoffset = gripperoff*np.cos(a)*np.cos(b) + zoff
 						yoffset = yoff - (gripperoff)*np.sin(a)
 						xoffset = xoff - (gripperoff)*np.sin(b)
