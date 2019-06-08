@@ -101,15 +101,15 @@ class adjust_shoe:
 				zp = trans_pick[2]
 		
 				if(0<xn<=x and zn>=z>0 and 0<x<xp):
-					a = np.arctan2((zn - z),(y - yn))
-					b = np.arctan2((x - xn),(zn - z)) + pi
+					a = np.arctan2((y - yn),(zn - z))
+					b = np.arctan2((x - xn),(zn - z))
 					c = np.arctan2((yp - y),(xp - x))
 
-					if(a>=0 and a<=pi and b>=pi and b<=1.5*pi and (0<=c<=pi or -pi<=c<0)):
-						zoffset = gripperoff*np.sin(a)*np.cos(b - pi) + zoff
-						yoffset = yoff - (gripperoff)*np.cos(a)
-						xoffset = xoff - (gripperoff)*np.sin(b - pi)
-						a = pi/2 - a
+					if(a>=-0.5*pi and a<=0.5*pi and b>=0 and b<=0.5*pi and (0<=c<=pi or -pi<=c<0)):
+						zoffset = gripperoff*np.cos(a)*np.cos(b) + zoff
+						yoffset = yoff - (gripperoff)*np.sin(a)
+						xoffset = xoff - (gripperoff)*np.sin(b)
+						b = b + pi
 						c = 0.5*pi+c-0.26
 						#set up 6D pose----------------
 						x = x+xoffset
