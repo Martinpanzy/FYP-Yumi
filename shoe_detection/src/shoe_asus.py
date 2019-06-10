@@ -5,7 +5,6 @@ import sensor_msgs.point_cloud2 as pc2
 import tf
 import ros_numpy
 import pcl
-from std_msgs.msg import String
 from sensor_msgs.msg import Image, PointCloud2
 from darknet_ros_msgs.msg import BoundingBoxes
 from math import pi
@@ -29,18 +28,16 @@ class kinect_vision:
 		self.cy = 400
 		self._tfpub = tf.TransformBroadcaster()
 		self.bridge = cv_bridge.CvBridge()	
-		self.depth_sub = rospy.Subscriber('/zed/zed_node/point_cloud/cloud_registered', PointCloud2, self.depth_callback)
-		self.image_sub = rospy.Subscriber('/zed/zed_node/rgb/image_rect_color', Image, self.image_callback)
+		self.depth_sub = rospy.Subscriber('/camera/depth_registered/points', PointCloud2, self.depth_callback)
+		self.image_sub = rospy.Subscriber('/camera/rgb/image_raw', Image, self.image_callback)
 		self.bbx_sub = rospy.Subscriber('/darknet_ros/bounding_boxes', BoundingBoxes, self.bbx_callback)
-		self.state_pub = rospy.Publisher('state', String, queue_size = 10)
 		self.coe = np.empty((0,3))	
-		self.shoehole = np.empty((0,3))
+		self.shoehole = np.empty((0,3))	
 		self.need_adj = False
 
 	#get 6D pose of hole(x,y)-------------------------------------------------------------
 	def depth_callback(self,data):
 		if(self.need_adj == False):
-			self.state_pub.publish('centroid')
 			#print('centroid')
 			#z depth----------------------------------------------------------------------
 			holes = np.empty((0,3))	
@@ -49,7 +46,7 @@ class kinect_vision:
 			for pps in self.pixelpoints:
 					[x, y, z, _] = pc[pps[0]+self.ymin,pps[1]+self.xmin]
 					if(np.isnan(x)==False and np.isnan(y)==False and np.isnan(z)==False):
-						hole = np.array([x, y, z])
+						hole = np.array([z, -x, -y])
 						holes = np.vstack((holes, hole))
 
 			if len(self.shoehole) < 10:
@@ -57,18 +54,18 @@ class kinect_vision:
 				if(np.isnan(cx)==False and np.isnan(cz)==False):
 					#holepose = np.mean(holes, axis=0)
 					#shoehole = [cz, -cx, holepose[2]]
-					shoehole = [cx, cy, cz]
+					shoehole = [cz, -cx, -cy]
 					self.shoehole = np.vstack((self.shoehole, shoehole))
 			else:
 				self.shoehole = np.mean(self.shoehole, axis=0)
-				self._tfpub.sendTransform((self.shoehole), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "shoe_hole", 'zed_left_camera_frame')
+				self._tfpub.sendTransform((self.shoehole), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "shoe_hole", 'camera_link')
 				self.shoehole = np.empty((0,3))
 
 			
 			#3D orientation----------------------------------------------------------------
 			p = pcl.PointCloud(np.array(holes, dtype = np.float32))
 
-			seg = p.make_segmenter_normals(ksearch=60)
+			seg = p.make_segmenter_normals(ksearch=35)
 			seg.set_optimize_coefficients(True)
 			seg.set_model_type(pcl.SACMODEL_NORMAL_PLANE)
 			seg.set_method_type(pcl.SAC_RANSAC)
@@ -78,7 +75,7 @@ class kinect_vision:
 			indices, coefficients = seg.segment()
 			#print('Model coefficients: ' + str(coefficients[0]) + ' ' + str(coefficients[1]) + ' ' + str(coefficients[2]) + ' ' + str(coefficients[3]))
 
-			if len(self.coe) < 10:	
+			if len(self.coe) < 40:	
 				if(np.isnan(coefficients[0])==False and np.isnan(coefficients[1])==False and np.isnan(coefficients[2])==False and coefficients[0]>0):
 					self.coe = np.vstack((self.coe, [coefficients[0], coefficients[1], coefficients[2]]))
 			else:
@@ -89,14 +86,13 @@ class kinect_vision:
 		
 					self.coe = np.mean(self.coe, axis=0)
 					ppp = [-0.1*self.coe[0], -0.1*self.coe[1], -0.1*self.coe[2]]
-					self._tfpub.sendTransform((ppp), tf.transformations.quaternion_from_euler(0, 0, pi), rospy.Time.now(), "pre_put", 'shoe_hole')
-					pick = [0.05*self.coe[0], 0.05*self.coe[1], 0.05*self.coe[2]]
+					self._tfpub.sendTransform((ppp), tf.transformations.quaternion_from_euler(0, 0, pi), rospy.Time.now(), "norm_shoe_hole", 'shoe_hole')
+					pick = [0.02*self.coe[0], 0.02*self.coe[1], 0.02*self.coe[2]]
 					self._tfpub.sendTransform((pick), tf.transformations.quaternion_from_euler(0, 0, pi), rospy.Time.now(), "pick", 'shoe_hole')
 					self.coe = np.empty((0,3))
 
 		#adjustment waypoint----------------------------------------------------------
 		else:
-			self.state_pub.publish('adjust')
 			#print('adjust')
 			adr = pc2.read_points(data, field_names = ('x', 'y', 'z'), skip_nans = True, uvs = [(self.adr_x, self.adr_y)])
 			adrr = pc2.read_points(data, field_names = ('x', 'y', 'z'), skip_nans = True, uvs = [(self.adr_xx, self.adr_y)])
@@ -113,14 +109,14 @@ class kinect_vision:
 				adl_x, adl_y, adl_z = adl[0]
 				adl_xx, adl_yy, adl_zz = adll[0]
 
-				adr = [adr_x, adr_y, adr_z]
-				adrr = [adr_xx, adr_yy, adr_zz]
-				adl = [adl_x, adl_y, adl_z]
-				adll = [adl_xx, adl_yy, adl_zz]
-				self._tfpub.sendTransform((adr), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "adr", 'zed_left_camera_frame')
-				self._tfpub.sendTransform((adrr), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "adrr", 'zed_left_camera_frame')
-				self._tfpub.sendTransform((adl), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "adl", 'zed_left_camera_frame')
-				self._tfpub.sendTransform((adll), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "adll", 'zed_left_camera_frame')
+				adr = [adr_z, -adr_x, -adr_y]
+				adrr = [adr_zz, -adr_xx, -adr_yy]
+				adl = [adl_z, -adl_x, -adl_y]
+				adll = [adl_zz, -adl_xx, -adl_yy]
+				self._tfpub.sendTransform((adr), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "adr", 'camera_link')
+				self._tfpub.sendTransform((adrr), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "adrr", 'camera_link')
+				self._tfpub.sendTransform((adl), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "adl", 'camera_link')
+				self._tfpub.sendTransform((adll), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "adll", 'camera_link')
 
 	#find shoe bounding box------------------------------------------------------------------
 	def bbx_callback(self,bx):
@@ -132,7 +128,7 @@ class kinect_vision:
 				self.ymax = box.ymax
 				box_h = box.ymax - box.ymin
 				box_w = box.xmax - box.xmin
-				if (box_h >= 1.8* box_w):
+				if (box_h >= 2* box_w):
 					self.adr_x = int(box.xmax + 30)
 					self.adr_xx = int(box.xmin + 0.15*box_w)
 					self.adr_y = int(box.ymax - 0.15*box_h)
@@ -158,12 +154,12 @@ class kinect_vision:
 		mask2 = cv2.dilate(mask1, None, iterations=1)
 
 		(_, cnts, _) = cv2.findContours(mask2.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-		h, w, d = image.shape
+		h, w, d = image.shape #480, 640, 3
 
 		if len(cnts) > 0:
 			cnt = max(cnts, key=cv2.contourArea)
 			area = cv2.contourArea(cnt)
-			#print area
+			print area
 			M = cv2.moments(cnt)
 			if M['m00'] > 0:
 				cx = int(M['m10']/M['m00'])

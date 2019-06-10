@@ -174,8 +174,9 @@ def gogogo():
 	yumi.move_and_grasp(yumi.RIGHT, pose_norm, 10.0)
 	yumi.move_and_grasp(yumi.RIGHT, pose, 10.0)
 	yumi.move_and_grasp(yumi.RIGHT, pose_norm, -10.0)
-	yumi.reset_arm(RIGHT)
-	yumi.reset_arm_cal(RIGHT)
+	'''
+	yumi.reset_arm(BOTH)
+	#yumi.reset_arm_cal(RIGHT)
 	'''
 	pose_norm = [0.6034419544962922, 0.04942187099026171, 0.24573289236051445, 0, pi, 1.2374481224438287]
 	pose = [0.6034419544962922, 0.04942187099026171, 0.17573289236051445, 0, pi, 1.2374481224438287]
@@ -186,7 +187,7 @@ def gogogo():
 	yumi.reset_arm(LEFT)
 	yumi.reset_arm_cal(LEFT)
 	rospy.spin()
-
+	'''
 		
 if __name__ == '__main__':
     try:
