@@ -9,6 +9,7 @@ from std_msgs.msg import String
 from sensor_msgs.msg import Image, PointCloud2
 from darknet_ros_msgs.msg import BoundingBoxes
 from math import pi
+import time
 #from sklearn.cluster import KMeans
 
 #lower_blue = np.array([110, 50, 50])
@@ -52,7 +53,7 @@ class kinect_vision:
 						hole = np.array([x, y, z])
 						holes = np.vstack((holes, hole))
 
-			if len(self.shoehole) < 10:
+			if len(self.shoehole) < 3:
 				[cx, cy, cz, _] = pc[self.cy, self.cx]
 				if(np.isnan(cx)==False and np.isnan(cz)==False):
 					#holepose = np.mean(holes, axis=0)
@@ -68,7 +69,7 @@ class kinect_vision:
 			#3D orientation----------------------------------------------------------------
 			p = pcl.PointCloud(np.array(holes, dtype = np.float32))
 
-			seg = p.make_segmenter_normals(ksearch=60)
+			seg = p.make_segmenter_normals(ksearch=300)
 			seg.set_optimize_coefficients(True)
 			seg.set_model_type(pcl.SACMODEL_NORMAL_PLANE)
 			seg.set_method_type(pcl.SAC_RANSAC)
@@ -78,7 +79,7 @@ class kinect_vision:
 			indices, coefficients = seg.segment()
 			#print('Model coefficients: ' + str(coefficients[0]) + ' ' + str(coefficients[1]) + ' ' + str(coefficients[2]) + ' ' + str(coefficients[3]))
 
-			if len(self.coe) < 10:	
+			if len(self.coe) < 5:	
 				if(np.isnan(coefficients[0])==False and np.isnan(coefficients[1])==False and np.isnan(coefficients[2])==False and coefficients[0]>0):
 					self.coe = np.vstack((self.coe, [coefficients[0], coefficients[1], coefficients[2]]))
 			else:
@@ -90,7 +91,7 @@ class kinect_vision:
 					self.coe = np.mean(self.coe, axis=0)
 					ppp = [-0.1*self.coe[0], -0.1*self.coe[1], -0.1*self.coe[2]]
 					self._tfpub.sendTransform((ppp), tf.transformations.quaternion_from_euler(0, 0, pi), rospy.Time.now(), "pre_put", 'shoe_hole')
-					pick = [0.05*self.coe[0], 0.05*self.coe[1], 0.05*self.coe[2]]
+					pick = [0.045*self.coe[0], 0.045*self.coe[1], 0.045*self.coe[2]]
 					self._tfpub.sendTransform((pick), tf.transformations.quaternion_from_euler(0, 0, pi), rospy.Time.now(), "pick", 'shoe_hole')
 					self.coe = np.empty((0,3))
 
@@ -121,11 +122,10 @@ class kinect_vision:
 				self._tfpub.sendTransform((adrr), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "adrr", 'zed_left_camera_frame')
 				self._tfpub.sendTransform((adl), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "adl", 'zed_left_camera_frame')
 				self._tfpub.sendTransform((adll), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "adll", 'zed_left_camera_frame')
-
 	#find shoe bounding box------------------------------------------------------------------
 	def bbx_callback(self,bx):
 		for box in bx.bounding_boxes:
-			if(box.Class == 'footwear'):
+			if(box.Class == 'footwear' or box.Class == 'shoe'):
 				self.xmin = box.xmin
 				self.ymin = box.ymin
 				self.xmax = box.xmax
@@ -133,17 +133,18 @@ class kinect_vision:
 				box_h = box.ymax - box.ymin
 				box_w = box.xmax - box.xmin
 				if (box_h >= 1.8* box_w):
-					self.adr_x = int(box.xmax + 30)
+					self.adr_x = int(box.xmax + 60)
 					self.adr_xx = int(box.xmin + 0.15*box_w)
 					self.adr_y = int(box.ymax - 0.15*box_h)
 
-					self.adl_x = int(box.xmin - 20)
+					self.adl_x = int(box.xmin - 60)
 					self.adl_xx = int(box.xmax - 0.15*box_w)
 					self.adl_y = int(box.ymin + 0.25*box_h)
 					self.need_adj = True
 
 	#find shoe hole x,y position-------------------------------------------------------------
 	def image_callback(self,msg):
+		#self.start = time.clock()
 		image = self.bridge.imgmsg_to_cv2(msg,'bgr8')
 		image = image[self.ymin:self.ymax, self.xmin:self.xmax]
 		blurred = cv2.GaussianBlur(image, (11, 11), 0)
@@ -170,12 +171,14 @@ class kinect_vision:
 				cy = int(M['m01']/M['m00'])
 			#if area > 80 and area < 350:
 				self.pixelpoints = np.transpose(np.nonzero(mask2))	
+				#print(len(self.pixelpoints))
 				self.cx = cx + self.xmin
 				self.cy = cy + self.ymin
+				#print time.clock() - self.start
 		
 #'''
-				cv2.circle(image, (cx, cy), 1, (0,0,0), -1)
-				cv2.putText(image, "({}, {})".format(int(cx), int(cy)), (int(cx-5), int(cy+15)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
+				cv2.circle(image, (cx, cy), 3, (0,0,255), -1)
+				#cv2.putText(image, "({}, {})".format(int(cx), int(cy)), (int(cx-5), int(cy+15)), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 1)
 				cv2.drawContours(image, cnt, -1, (255, 255, 255),1)
 
 		cv2.imshow("image", image)

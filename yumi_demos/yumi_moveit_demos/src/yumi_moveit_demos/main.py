@@ -19,8 +19,8 @@ import tf
 LEFT = 2        #:ID of the left arm
 RIGHT = 1       #:ID of the right arm
 BOTH = 3        #:ID of both_arms
-xoff = -0.025
-yoff = 0
+xoff = -0.021
+yoff = 0.011
 gripperoff = 0.136
 zoff = 0.17 - gripperoff
 
@@ -111,24 +111,24 @@ def tf_listener():
 		try:
 			(trans,rot) = listener.lookupTransform('/yumi_body', '/shoe_hole', rospy.Time(0))
 			(trans_pick,rot) = listener.lookupTransform('/yumi_body', '/pick', rospy.Time(0))
-			(trans_norm,rot_norm) = listener.lookupTransform('/yumi_body', '/norm_shoe_hole', rospy.Time(0))
+			(trans_norm,rot_norm) = listener.lookupTransform('/yumi_body', '/pre_put', rospy.Time(0))
 		except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
 			continue
 		x = trans[0] + xoff
 		y = trans[1] + yoff
 		z = trans[2] + zof
-		xp = trans_pick[0] + xoff
-		yp = trans_pick[1] + yoff
-		zp = trans_pick[2] + zof
+		#xp = trans_pick[0] + xoff
+		#yp = trans_pick[1] + yoff
+		#zp = trans_pick[2] + zof
 		#xn = trans_norm[0] + xoff
 		#yn = trans_norm[1] + yoff
 		#zn = trans_norm[2] + zof
-		#print (x, y, z, xp, yp, zp)
+		print (x, y, z)
 
-		if(0<x<xp):
-			c = np.arctan2((yp - y),(xp - x))
-			if (0<=c<=pi or -pi<=c<0):
-				print (xp, yp, zp, 0.5*pi+c-0.26)
+		#if(0<x<xp):
+		#	c = np.arctan2((yp - y),(xp - x))
+		#	if (0<=c<=pi or -pi<=c<0):
+		#		print (xp, yp, zp, 0.5*pi+c-0.26)
 			
 		'''
 		if(0<xn<=x and zn>=z>0):
@@ -167,16 +167,14 @@ def tf_listener():
 def gogogo():
 	rospy.init_node('yumi_moveit_demo')
 	yumi.init_Moveit()
-	'''
-	pose_norm = [0.5866301502044863, 0.03300362835388669, 0.24680494473724038, 0, pi, pi]
-	pose = [0.5866301502044863, 0.03300362835388669, 0.18680494473724038, 0, pi, pi]
+	pose_norm = [0.5544062601153082, -0.037042480046261275, 0.24810231119611152, 0, pi, pi]
+	pose = [0.5544062601153082, -0.037042480046261275, 0.19810231119611152, 0, pi, pi]
 	yumi.reset_arm(RIGHT)
 	yumi.move_and_grasp(yumi.RIGHT, pose_norm, 10.0)
 	yumi.move_and_grasp(yumi.RIGHT, pose, 10.0)
 	yumi.move_and_grasp(yumi.RIGHT, pose_norm, -10.0)
-	'''
-	yumi.reset_arm(BOTH)
-	#yumi.reset_arm_cal(RIGHT)
+	yumi.reset_arm(RIGHT)
+	yumi.reset_arm_cal(RIGHT)
 	'''
 	pose_norm = [0.6034419544962922, 0.04942187099026171, 0.24573289236051445, 0, pi, 1.2374481224438287]
 	pose = [0.6034419544962922, 0.04942187099026171, 0.17573289236051445, 0, pi, 1.2374481224438287]
@@ -186,8 +184,8 @@ def gogogo():
 	yumi.move_and_grasp(yumi.LEFT, pose_norm, 10.0)
 	yumi.reset_arm(LEFT)
 	yumi.reset_arm_cal(LEFT)
-	rospy.spin()
 	'''
+	rospy.spin()
 		
 if __name__ == '__main__':
     try:

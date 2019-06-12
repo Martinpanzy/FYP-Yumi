@@ -12,7 +12,7 @@ from std_srvs.srv import Empty
 import numpy as np
 from math import pi
 from std_msgs.msg import String
-
+import time
 import tf
 
 LEFT = 2        #:ID of the left arm
@@ -22,10 +22,10 @@ BOTH = 3        #:ID of both_arms
 #yoff = -0.032
 #gripperoff = 0.136
 #zoff = 0.18 - gripperoff
-xoff = -0.025
-yoff = 0
+xoff = -0.021
+yoff = 0.010
 gripperoff = 0.136
-zoff = 0.145 - gripperoff
+zoff = 0.15 - gripperoff
 
 class adjust_shoe:
 	def state_callback(self,data):
@@ -61,11 +61,13 @@ class adjust_shoe:
 				#print (x_r, y_r, y_rr, x_l, y_l, y_ll)
 				self.need_adj = False
 				yumi.reset_arm_home(BOTH)
-				yumi.plan_and_move_dual(yumi.create_pose_euler(x_l, y_l, 0.2, -pi/4, pi, pi), yumi.create_pose_euler(x_r, y_r, 0.2, pi/4, pi, pi))
+				#start = time.time()
+				yumi.plan_and_move_dual(yumi.create_pose_euler(x_l, y_l, 0.3, -pi/4, pi, pi), yumi.create_pose_euler(x_r, y_r, 0.3, pi/4, pi, pi))
 				yumi.plan_and_move_dual(yumi.create_pose_euler(x_l, y_l, 0.1, -pi/4, pi, pi), yumi.create_pose_euler(x_r, y_r, 0.1, pi/4, pi, pi))
 				yumi.plan_and_move_dual(yumi.create_pose_euler(x_l, y_ll, 0.1, -pi/4, pi, pi), yumi.create_pose_euler(x_r, y_rr, 0.1, pi/4, pi, pi))
 				yumi.plan_and_move_dual(yumi.create_pose_euler(x_l, y_l, 0.1, -pi/4, pi, pi), yumi.create_pose_euler(x_r, y_r, 0.1, pi/4, pi, pi))
-				yumi.plan_and_move_dual(yumi.create_pose_euler(x_l, y_l, 0.25, -pi/4, pi, pi), yumi.create_pose_euler(x_r, y_r, 0.25, pi/4, pi, pi))
+				yumi.plan_and_move_dual(yumi.create_pose_euler(x_l, y_l, 0.3, -pi/4, pi, pi), yumi.create_pose_euler(x_r, y_r, 0.3, pi/4, pi, pi))
+				#print time.time() - start
 				yumi.reset_arm_home(BOTH)
 				yumi.reset_arm_cal(BOTH)
 				rospy.sleep(3)
@@ -97,7 +99,7 @@ class adjust_shoe:
 						yoffset = yoff - (gripperoff)*np.sin(a)
 						xoffset = xoff - (gripperoff)*np.sin(b)
 						b = b + pi
-						c = 0.5*pi+c-0.1
+						c = 0.5*pi+c-0.15
 						#set up 6D pose----------------
 						x = x+xoffset
 						y = y+yoffset
@@ -111,23 +113,26 @@ class adjust_shoe:
 						print (x, y, z, xn, yn, zn, a, b)
 
 						if(np.isnan(a)==False and np.isnan(b)==False):
-							#pose_norm = [xn, yn, zn, a, b, pi]
-							#pose = [x, y, z, a, b, pi]
-							#yumi.reset_arm(RIGHT)
-							#yumi.move_and_grasp(yumi.RIGHT, pose_norm, 10.0)
-							#yumi.move_and_grasp(yumi.RIGHT, pose, -10.0)
-							#yumi.move_and_grasp(yumi.RIGHT, pose_norm, -10.0)
-							#yumi.reset_arm(RIGHT)
-							#yumi.reset_arm_cal(RIGHT)
-
-							pose_pick = [xp, yp, zp+0.08, 0, pi, c]
-							pose_grab = [xp, yp, zp, 0, pi, c]
-							yumi.reset_arm_home(LEFT)
-							yumi.move_and_grasp(yumi.LEFT, pose_pick, -10.0)
-							yumi.move_and_grasp(yumi.LEFT, pose_grab, 10.0)
-							yumi.move_and_grasp(yumi.LEFT, pose_pick, 10.0)
-							yumi.reset_arm(LEFT)
-							yumi.reset_arm_cal(LEFT)
+							'''
+							pose_norm = [xn, yn, zn, a, b, pi]
+							pose = [x, y, z, a, b, pi]
+							yumi.reset_arm(RIGHT)
+							start = time.time()
+							yumi.move_and_grasp(yumi.RIGHT, pose_norm, 10.0)
+							yumi.move_and_grasp(yumi.RIGHT, pose, -10.0)
+							yumi.move_and_grasp(yumi.RIGHT, pose_norm, -10.0)
+							print time.time() - start
+							yumi.reset_arm(RIGHT)
+							yumi.reset_arm_cal(RIGHT)
+							'''
+							pose_pick = [xp, yp, 0.19+0.08, 0, pi, c]
+							pose_grab = [xp, yp, 0.19, 0, pi, c]
+							yumi.reset_arm_home(RIGHT)
+							yumi.move_and_grasp(yumi.RIGHT, pose_pick, -10.0)
+							yumi.move_and_grasp(yumi.RIGHT, pose_grab, 10.0)
+							yumi.move_and_grasp(yumi.RIGHT, pose_pick, 10.0)
+							yumi.reset_arm(RIGHT)
+							yumi.reset_arm_cal(RIGHT)
 							rospy.on_shutdown(done)
 
 if __name__ == '__main__':
