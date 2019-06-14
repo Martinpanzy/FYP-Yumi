@@ -131,11 +131,11 @@ class kinect_vision:
 				if (box_h >= 2* box_w):
 					self.adr_x = int(box.xmax + 30)
 					self.adr_xx = int(box.xmin + 0.15*box_w)
-					self.adr_y = int(box.ymax - 0.15*box_h)
+					self.adr_y = int(box.ymax - 0.13*box_h)
 
-					self.adl_x = int(box.xmin - 20)
+					self.adl_x = int(box.xmin - 30)
 					self.adl_xx = int(box.xmax - 0.15*box_w)
-					self.adl_y = int(box.ymin + 0.25*box_h)
+					self.adl_y = int(box.ymin + 0.3*box_h)
 					self.need_adj = True
 
 	#find shoe hole x,y position-------------------------------------------------------------
