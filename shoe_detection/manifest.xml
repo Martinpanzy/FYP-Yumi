@@ -1,0 +1,22 @@
+<package>
+  <description brief="shoe_detection">
+
+     shoe_detection
+
+  </description>
+  <author>Martinpzy</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/shoe_detection</url>
+  <depend package="sensor_msgs"/>
+  <depend package="opencv3"/>
+  <depend package="cv_bridge"/>
+  <depend package="rospy"/>
+  <depend package="std_msgs"/>
+  <depend package="geometry_msgs"/>
+  <depend package="moveit_msgs"/>
+  <depend package="pcl"/>
+  <depend package="darknet_ros_msgs"/>
+</package>
+
+
