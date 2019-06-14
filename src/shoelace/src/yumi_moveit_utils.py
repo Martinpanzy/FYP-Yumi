@@ -36,7 +36,7 @@ def init_Moveit():
     global group_both
     global robot
     global scene
-    print("------------------------------------     Start Initialization     ------------------------------------ ")
+    print("------------------------------------ Start Initialization ------------------------------------ ")
     moveit_commander.roscpp_initialize(sys.argv)
     
     robot = moveit_commander.RobotCommander()
@@ -76,7 +76,7 @@ def init_Moveit():
 
     display_trajectory_publisher = rospy.Publisher('/move_group/display_planned_path', 	moveit_msgs.msg.DisplayTrajectory, queue_size=20)
     rospy.sleep(3)
-    print("------------------------------------      Finished Initialization     ------------------------------------ ")
+    print("------------------------------------ Finished Initialization ------------------------------------ ")
 
     sys.stdout.write('\nYuMi MoveIt! initialized! Ready for manipulation!\n\n\n')
 
@@ -490,8 +490,43 @@ def reset_arm(arm):
 
 
 #---------------------------------------------
+def reset_arm_adj_l():
+    safeJointPositionL = [-0.9266355633735657, -1.043561339378357, 0.36567890644073486, 0.8293424844741821, 0.08408934623003006, 0.47911766171455383, -0.2958332598209381]
+
+    global group_l
+
+    group_l.set_joint_value_target(safeJointPositionL)
+    group_l.plan()
+    group_l.go(wait=True)
+
+    safeJointPositionL = [-1.2334758043289185, -1.2504618167877197, 0.7581612467765808, 0.6588970422744751, 0.5924351811408997, 0.6579232811927795, -0.1033397763967514]
+    group_l.set_joint_value_target(safeJointPositionL)
+    group_l.plan()
+    group_l.go(wait=True)
+    #gripper_effort(LEFT, -15.0)
+    #gripper_effort(LEFT, 10.0)
+
+def reset_arm_adj_r():
+    safeJointPositionR = [1.4647473096847534, -1.2226693630218506, -0.9753973484039307, 0.5116891860961914, -0.7166358232498169, 0.6969536542892456, 0.11779454350471497]
+
+    global group_r
+    global group_l
+
+    gripper_effort(RIGHT, -15.0)
+    group_r.set_joint_value_target(safeJointPositionR)
+    group_r.plan()
+    group_r.go(wait=True)
+    gripper_effort(RIGHT, 10.0)
+    safeJointPositionR = [1.4517822265625, -1.23598051071167, -0.8718258142471313, 0.4567074775695801, -0.8050419092178345, 0.49389103055000305, 0.23860414326190948]
+    group_r.set_joint_value_target(safeJointPositionR)
+    group_r.plan()
+    group_r.go(wait=True)
+    gripper_effort(LEFT, -15.0)
+#---------------------------------------------
+
+
+
 def plan_and_move_dual(target_l, target_r):
-    arm = 'both'
 
     group_both.set_pose_target(target_l, "yumi_link_7_l")
     group_both.set_pose_target(target_r, "yumi_link_7_r")
@@ -582,5 +617,47 @@ def move_and_grasp(arm, pose_ee, grip_effort):
         gripper_effort(arm, grip_effort)
     else:
         print("The gripper effort values should be in the range [-20, 20]")
+
+'''
+def plan_path_dual(points_l, points_r, planning_tries = 500):
+    global robot
+    global group_l
+    global group_r
+    global group_both
+
+    waypoints_l = []
+    waypoints_r = []
+    for point in points_l:
+        wpose = create_pose_euler(point[0], point[1], point[2], point[3], point[4], point[5])
+        waypoints_l.append(copy.deepcopy(wpose))
+    #print waypoints
+    for point in points_r:
+        wpose = create_pose_euler(point[0], point[1], point[2], point[3], point[4], point[5])
+        waypoints_r.append(copy.deepcopy(wpose))
+    #print waypoints
+
+    group_l.set_start_state_to_current_state()
+    group_r.set_start_state_to_current_state()
+
+    attempts = 0
+    fractionr = 0.0
+    fractionl = 0.0
+
+    while (fractionl < 1.0 and fractionr < 1.0 and attempts < planning_tries):
+        (planl, fractionl) = group_l.compute_cartesian_path(waypoints_l, 0.01, 0.0, True)
+        (planr, fractionr) = group_r.compute_cartesian_path(waypoints_r, 0.01, 0.0, True)
+        attempts += 1
+        rospy.loginfo('attempts: ' + str(attempts) + ', fractionl: ' + str(fractionl) + ', fractionr: ' + str(fractionr))
+        if (fractionl == 1.0 and fractionr == 1.0):
+            planl = group_l.retime_trajectory(robot.get_current_state(), planl, 1.0)
+            planr = group_r.retime_trajectory(robot.get_current_state(), planr, 1.0)
+            group_both.execute(planl + planr)
+            #group_l.execute(planl)
+
+    if (fractionl < 1.0 or fractionr < 1.0):
+        rospy.logerr('Only managed to calculate ' + str(fractionr*100) + '% of the path!')
+        raise Exception('Could not calculate full path, exiting')
+    return None
+'''
 
 rospy.sleep(1)
