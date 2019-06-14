@@ -1,0 +1,2 @@
+
+-DCATKIN_DEVEL_PREFIX=/home/zengyang/fypyumi_ws/devel -DCMAKE_INSTALL_PREFIX=/home/zengyang/fypyumi_ws/install -G Unix Makefiles
