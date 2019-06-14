@@ -19,8 +19,8 @@ roscore
 roslaunch zed_wrapper zedm.launch --or-- roslaunch openni2_launch openni2.launch
 roslaunch yumi_moveit_config yumi.launch 
 roslaunch darknet_ros darknet_ros.launch 
-rosrun shoe_detection shoe_zed.py --or-- rosrun shoe_detection norm.py
-rosrun yumi_moveit_demos adjust.py 
+rosrun shoehole shoe_zed.py --or-- rosrun shoehole shoe_asus.py
+rosrun shoelace go_zed.py --or-- rosrun shoelace go_asus.py 
 ```
 
 ## Run YuMi simulation
