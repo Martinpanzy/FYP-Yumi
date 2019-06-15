@@ -1,16 +1,13 @@
 # FYP-Yumi
 
 ## Dependencies
-Install ROS kinetic
-
-Install openni for ASUS or Install zed-ros-wrapper for Zed mini
-
-Install pcl, python-pcl https://medium.com/@ss4365gg/%E6%88%90%E5%8A%9F%E5%9C%A8ubuntu-16-04%E7%92%B0%E5%A2%83%E4%B8%AD%E5%AE%89%E8%A3%9D-pcl-1-8-1-python-pcl-a016b711bc4
-
+- [ROS kinetic](http://wiki.ros.org/kinetic/Installation/Ubuntu)
+- [openni](http://wiki.ros.org/openni_camera) for ASUS or Kinect
+- [zed-ros-wrapper](https://github.com/stereolabs/zed-ros-wrapper) for Zed mini
+- [pcl] and [python-pcl] (https://medium.com/@ss4365gg/%E6%88%90%E5%8A%9F%E5%9C%A8ubuntu-16-04%E7%92%B0%E5%A2%83%E4%B8%AD%E5%AE%89%E8%A3%9D-pcl-1-8-1-python-pcl-a016b711bc4)
 - [YOLO ROS](https://github.com/leggedrobotics/darknet_ros) for real-time object detection
 - The [YuMi ROS](https://github.com/ImperialCollegeLondon/yumi-prl) wrapper and any further dependencies described there
-
-Install MoveIt!
+- [MoveIt!](http://docs.ros.org/kinetic/api/moveit_tutorials/html/doc/getting_started/getting_started.html)
 
 ## Run shoe lacing
 ```
