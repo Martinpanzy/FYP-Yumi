@@ -5,11 +5,10 @@ Install ROS kinetic
 
 Install openni for ASUS or Install zed-ros-wrapper for Zed mini
 
-Install imperial college yumi ...
-
 Install pcl, python-pcl https://medium.com/@ss4365gg/%E6%88%90%E5%8A%9F%E5%9C%A8ubuntu-16-04%E7%92%B0%E5%A2%83%E4%B8%AD%E5%AE%89%E8%A3%9D-pcl-1-8-1-python-pcl-a016b711bc4
 
-Install darknet_ros
+- [YOLO ROS](https://github.com/leggedrobotics/darknet_ros) for real-time object detection
+- The [YuMi ROS](https://github.com/ImperialCollegeLondon/yumi-prl) wrapper and any further dependencies described there
 
 Install MoveIt!
 
