@@ -105,9 +105,11 @@ class go_zed:
 						zp = zp+zoff+gripperoff
 
 						if(np.isnan(a)==False and np.isnan(b)==False):
-							#'''
 							pose_norm = [xn, yn, zn, a, b, pi]
 							pose = [x, y, z, a, b, pi]
+							pose_pick = [xp, yp, 0.18+0.08, 0, pi, c]
+							pose_grab = [xp, yp, 0.18, 0, pi, c]
+							#'''
 							yumi.reset_arm(RIGHT)
 							yumi.move_and_grasp(yumi.RIGHT, pose_norm, 10.0)
 							yumi.move_and_grasp(yumi.RIGHT, pose, -10.0)
@@ -115,8 +117,6 @@ class go_zed:
 							yumi.reset_arm(RIGHT)
 							yumi.reset_arm_cal(RIGHT)
 							#'''
-							pose_pick = [xp, yp, 0.18+0.08, 0, pi, c]
-							pose_grab = [xp, yp, 0.18, 0, pi, c]
 							yumi.reset_arm_home(LEFT)
 							yumi.move_and_grasp(yumi.LEFT, pose_pick, -10.0)
 							yumi.move_and_grasp(yumi.LEFT, pose_grab, 10.0)

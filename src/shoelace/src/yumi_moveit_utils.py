@@ -57,22 +57,28 @@ def init_Moveit():
     scene.add_box("workbench", p, (0.75, 1.0, 0.035))
     
     group_l = moveit_commander.MoveGroupCommander("left_arm")
+    group_l.set_planner_id("ESTkConfigDefault")
     group_l.set_pose_reference_frame("yumi_base_link")
     group_l.allow_replanning(False)
-    group_l.set_goal_position_tolerance(0.005)
-    group_l.set_goal_orientation_tolerance(0.005)
+    group_l.set_goal_position_tolerance(0.001)
+    group_l.set_goal_orientation_tolerance(0.001)
+    #group_l.set_planning_time(15)
 
     group_r = moveit_commander.MoveGroupCommander("right_arm")
+    group_r.set_planner_id("ESTkConfigDefault")
     group_r.set_pose_reference_frame("yumi_base_link")
     group_r.allow_replanning(False)
-    group_r.set_goal_position_tolerance(0.005)
-    group_r.set_goal_orientation_tolerance(0.005)
+    group_r.set_goal_position_tolerance(0.001)
+    group_r.set_goal_orientation_tolerance(0.001)
+    #group_r.set_planning_time(15)
 
     group_both = moveit_commander.MoveGroupCommander("both_arms")
+    group_both.set_planner_id("ESTkConfigDefault")
     group_both.set_pose_reference_frame("yumi_base_link")
     group_both.allow_replanning(False)
-    group_both.set_goal_position_tolerance(0.005)
-    group_both.set_goal_orientation_tolerance(0.005)
+    group_both.set_goal_position_tolerance(0.001)
+    group_both.set_goal_orientation_tolerance(0.001)
+    #group_both.set_planning_time(15)
 
     display_trajectory_publisher = rospy.Publisher('/move_group/display_planned_path', 	moveit_msgs.msg.DisplayTrajectory, queue_size=20)
     rospy.sleep(3)
@@ -382,7 +388,7 @@ def plan_path(points, arm, planning_tries = 500):
     fraction = 0.0
 
     while fraction < 1.0 and attempts < planning_tries:
-        (plan, fraction) = cur_arm.compute_cartesian_path(waypoints, 0.01, 0.0, True)
+        (plan, fraction) = cur_arm.compute_cartesian_path(waypoints, 0.005, 0.0, True)
         attempts += 1
         rospy.loginfo('attempts: ' + str(attempts) + ', fraction: ' + str(fraction))
         if (fraction == 1.0):
@@ -608,11 +614,11 @@ def move_and_grasp(arm, pose_ee, grip_effort):
     try:
         traverse_path([pose_ee], arm, 10)
     except Exception:
-        #if (arm == LEFT):
-            #plan_and_move(group_l, create_pose_euler(pose_ee[0], pose_ee[1], pose_ee[2], pose_ee[3], pose_ee[4], pose_ee[5]))
-        #elif (arm == RIGHT):
-            #plan_and_move(group_r, create_pose_euler(pose_ee[0], pose_ee[1], pose_ee[2], pose_ee[3], pose_ee[4], pose_ee[5]))
-        pass
+        if (arm == LEFT):
+            plan_and_move(group_l, create_pose_euler(pose_ee[0], pose_ee[1], pose_ee[2], pose_ee[3], pose_ee[4], pose_ee[5]))
+        elif (arm == RIGHT):
+            plan_and_move(group_r, create_pose_euler(pose_ee[0], pose_ee[1], pose_ee[2], pose_ee[3], pose_ee[4], pose_ee[5]))
+        #pass
     if (grip_effort <= 20 and grip_effort >= -20):
         gripper_effort(arm, grip_effort)
     else:
