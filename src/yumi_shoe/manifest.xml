@@ -1,0 +1,14 @@
+<package>
+  <description brief="yumi_shoe">
+
+     yumi_shoe
+
+  </description>
+  <author>Zengyang</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/yumi_shoe</url>
+
+</package>
+
+
