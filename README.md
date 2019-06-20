@@ -10,24 +10,24 @@
 - [MoveIt!](http://docs.ros.org/kinetic/api/moveit_tutorials/html/doc/getting_started/getting_started.html)
 
 ## Files
-1. The pose relationships between the two cameras and YuMi are defined in the YuMi launch files. The demo.launch is for simulation in Rviz, yumi.launch is for launching the real robot. 
+1. The pose relationships between the two cameras and YuMi are defined in the YuMi launch files. The **demo.launch** is for simulation in Rviz, **yumi.launch** is for launching the real robot. 
 
-2. The resolution and other settings of ZED Mini camera can be modified in the common.yaml file in the zed-ros-wrapper package.
+2. The resolution and other settings of ZED Mini camera can be modified in the **common.yaml** file in the ```zed-ros-wrapper``` package.
 
-3. For YOLO detection, different versions can be used by modifying the yolo.yaml file in the \config folder of darknet_ros package and adding corresponding .cfg and .weights files to yolo_network_config folder.
+3. To use different versions of YOLO, adding corresponding **.cfg** and **.weights** files to ```yolo_network_config``` folder, and points them in the **yolo.yaml** file in the ```/darknet_ros package/config``` folder.
 
-4. Folder shoehole: computer vision related files
+4. Folder ```shoehole```: computer vision related files
 
-- shoe_asus.py: provides functions of shoe detection, calculation of required locations for shoe pose adjustment, 6D shoe hole pose estimation etc using ASUS Xtion camera.
-- shoe_zed.py: provides same functionalities as shoe_asus.py except it is for ZED Mini camera.
+- **shoe_asus.py**: provides functions of shoe detection, calculation of required locations for shoe pose adjustment, 6D shoe hole pose estimation etc using ASUS Xtion camera.
+- **shoe_zed.py**: provides same functionalities as shoe_asus.py except it is for ZED Mini camera.
 
-5. Folder shoelace: motion planning related files
+5. Folder ```shoelace```: motion planning related files
 
-- go_asus.py: provides shoe pose adjustment, shoelace insertion, grabbing, and pulling, as well as offset adjustment functionalities while using ASUS Xtion camera.
-- go_zed.py: provides same function as go\_asus.py except it is for ZED Mini camera.
-- yumi_moveit_utils.py: includes several functions which are used in go_asus.py and go_zed.py.
+- **go_asus.py**: provides shoe pose adjustment, shoelace insertion, grabbing, and pulling, as well as offset adjustment functionalities while using ASUS Xtion camera.
+- **go_zed.py**: provides same function as go\_asus.py except it is for ZED Mini camera.
+- **yumi_moveit_utils.py**: includes several functions which are used in go_asus.py and go_zed.py.
 
-##Usage
+## Usage
 
 ### YuMi setup
 To launch this project, YuMi needs to be set up firstly. To do this, please follow these steps:
