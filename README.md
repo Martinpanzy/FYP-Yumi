@@ -1,4 +1,4 @@
-# FYP-Yumi
+# Yumi Manipulation of Shoe Laces - AI Planning and Control
 
 ## Dependencies
 - [ROS kinetic](http://wiki.ros.org/kinetic/Installation/Ubuntu)
@@ -10,13 +10,18 @@
 - [MoveIt!](http://docs.ros.org/kinetic/api/moveit_tutorials/html/doc/getting_started/getting_started.html)
 
 ## Files
+1. The pose relationships between the two cameras and YuMi are defined in the YuMi launch files. The demo.launch is for simulation in Rviz, yumi.launch is for launching the real robot. 
 
-Folder shoehole: computer vision related files
+2. The resolution and other settings of ZED Mini camera can be modified in the common.yaml file in the zed-ros-wrapper package.
+
+3. For YOLO detection, different versions can be used by modifying the yolo.yaml file in the \config folder of darknet_ros package and adding corresponding .cfg and .weights files to yolo_network_config folder.
+
+4. Folder shoehole: computer vision related files
 
 - shoe_asus.py: provides functions of shoe detection, calculation of required locations for shoe pose adjustment, 6D shoe hole pose estimation etc using ASUS Xtion camera.
 - shoe_zed.py: provides same functionalities as shoe_asus.py except it is for ZED Mini camera.
 
-Folder shoelace: motion planning related files
+5. Folder shoelace: motion planning related files
 
 - go_asus.py: provides shoe pose adjustment, shoelace insertion, grabbing, and pulling, as well as offset adjustment functionalities while using ASUS Xtion camera.
 - go_zed.py: provides same function as go\_asus.py except it is for ZED Mini camera.
@@ -27,17 +32,17 @@ Folder shoelace: motion planning related files
 ### YuMi setup
 To launch this project, YuMi needs to be set up firstly. To do this, please follow these steps:
 
-1.Turn on YuMi through the power switch.
+1. Turn on YuMi through the power switch.
 
-2.Connect the Ethernet cable on XP23 port to your machine.
+2. Connect the Ethernet cable on XP23 port to your machine.
 
-3.Turn on motors on controller interface (toggle physical button with 3 horizontal lines on the FlexPendant).
+3. Turn on motors on controller interface (toggle physical button with 3 horizontal lines on the FlexPendant).
 
-4.Switch to auto mode (toggle physical button with 2 horizontal lines on the FlexPendant).
+4. Switch to auto mode (toggle physical button with 2 horizontal lines on the FlexPendant).
 
-5.Point to main programs (toggle physical button with 1 horizontal line on the FlexPendant).
+5. Point to main programs (toggle physical button with 1 horizontal line on the FlexPendant).
 
-6.Press the play button, both YuMi's grippers should then calibrate.
+6. Press the play button, both YuMi's grippers should then calibrate.
 
 ### Quick start: shoe and shoelace manipulation
 Once YuMi has been set up, the shoe can be placed on the workbench. When using ZED Mini camera, following command should be run from a terminal after ```roscore```:
