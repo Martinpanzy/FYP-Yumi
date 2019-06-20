@@ -12,9 +12,9 @@
 ## Files
 1. The pose relationships between the two cameras and YuMi are defined in the YuMi launch files. The **demo.launch** is for simulation in Rviz, **yumi.launch** is for launching the real robot. 
 
-2. The resolution and other settings of ZED Mini camera can be modified in the **common.yaml** file in the ```zed-ros-wrapper``` package.
+2. The resolution and other settings of ZED Mini camera can be modified in the **common.yaml** file in the ```zed-ros-wrapper``` package. Current settings can be found in the ```file``` folder.
 
-3. To use different versions of YOLO, adding corresponding **.cfg** and **.weights** files to ```yolo_network_config``` folder, and points them in the **yolo.yaml** file in the ```/darknet_ros package/config``` folder.
+3. To use different versions of YOLO, adding corresponding **.cfg** and **.weights** files to ```yolo_network_config``` folder, and points them in the **yolo.yaml** file in the ```/darknet_ros package/config``` folder. YOLO9000 related files are can be found in the ```file``` folder.
 
 4. Folder ```shoehole```: computer vision related files
 
