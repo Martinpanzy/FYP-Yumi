@@ -42,25 +42,25 @@ To launch this project, YuMi needs to be set up firstly. To do this, please foll
 ### Quick start: shoe and shoelace manipulation
 Once YuMi has been set up, the shoe can be placed on the workbench. When using ZED Mini camera, following command should be run from a terminal after ```roscore```:
 
-``` roslaunch zed_wrapper zedm.launch ``` to launch ZED Mini camera
+-- ``` roslaunch zed_wrapper zedm.launch ``` to launch ZED Mini camera
 
-``` roslaunch yumi_shoe yumi.launch ``` to launch YuMi ROS Nodes
+-- ``` roslaunch yumi_shoe yumi.launch ``` to launch YuMi ROS Nodes
 
-``` roslaunch darknet_ros darknet_ros.launch ``` to launch YOLO detection
+-- ``` roslaunch darknet_ros darknet_ros.launch ``` to launch YOLO detection
 
-``` rosrun yumi_shoe shoe_zed.py ``` to launch computer vision module
+-- ``` rosrun yumi_shoe shoe_zed.py ``` to launch computer vision module
 
-``` rosrun yumi_shoe go_zed.py ``` to launch motion planning module
+-- ``` rosrun yumi_shoe go_zed.py ``` to launch motion planning module
 
 ### Run YuMi simulation
 
-``` roslaunch yumi_shoe demo.launch ```
+-- ``` roslaunch yumi_shoe demo.launch ```
 
 ### While using ASUS Xtion camera
 
-``` roslaunch openni2_launch openni2.launch ``` to launch ASUS Xtion camera
+-- ``` roslaunch openni2_launch openni2.launch ``` to launch ASUS Xtion camera
 
-``` rosrun yumi_shoe shoe_asus.py ``` to launch computer vision module
+-- ``` rosrun yumi_shoe shoe_asus.py ``` to launch computer vision module
 
-``` rosrun yumi_shoe go_asus.py ``` to launch motion planning module
+-- ``` rosrun yumi_shoe go_asus.py ``` to launch motion planning module
 
